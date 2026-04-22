@@ -1,0 +1,80 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --os-bg: #0b0e11;
+  --os-surface: #141619;
+  --os-surface-2: #1a1d21;
+  --os-surface-3: #24272c;
+  --os-border: #2a2d33;
+  --os-border-light: #363a41;
+  --os-text: #ffffff;
+  --os-text-secondary: #8a919e;
+  --os-text-tertiary: #5b616e;
+  --os-blue: #2081e2;
+  --os-green: #34c759;
+  --os-red: #eb5757;
+  --os-sidebar-width: 52px;
+  --os-sidebar-expanded: 200px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--os-bg);
+  color: var(--os-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--os-border);
+  border-radius: 3px;
+}
+
+a { color: inherit; text-decoration: none; }
+
+input, textarea, select {
+  background: var(--os-surface-2);
+  border: 1px solid var(--os-border);
+  color: var(--os-text);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+input:focus, textarea:focus {
+  border-color: var(--os-blue);
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  outline: none;
+}
+
+.monospace {
+  font-family: "SFMono-Regular", "SF Mono", "Menlo", monospace;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
