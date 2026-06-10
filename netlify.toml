@@ -3,6 +3,12 @@
   publish = "dist"
   environment = { NODE_VERSION = "20" }
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# SPA fallback — API routes (/api/*) are handled by functions via their
+# `config.path`, so they take precedence over this catch-all.
 [[redirects]]
   from = "/*"
   to = "/index.html"

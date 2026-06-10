@@ -1,0 +1,51 @@
+name: Deploy to Netlify
+
+# Autodeploy: every push to master builds and ships to Netlify production.
+# Pull requests get a draft preview URL posted back to the PR.
+#
+# Required GitHub repo secrets (Settings → Secrets and variables → Actions):
+#   NETLIFY_AUTH_TOKEN  — a Netlify personal access token
+#                         (Netlify → User settings → Applications → New access token)
+#   NETLIFY_SITE_ID     — 302e39fd-7b07-4311-a3ec-1636eed5d824  (accio-virtual-mall)
+#
+# Runtime app secrets (WorkOS, Anthropic) live in the Netlify dashboard, not here.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Build and deploy (production)
+        if: github.ref == 'refs/heads/master'
+        run: npx netlify deploy --build --prod
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Build and deploy (preview)
+        if: github.ref != 'refs/heads/master'
+        run: npx netlify deploy --build
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

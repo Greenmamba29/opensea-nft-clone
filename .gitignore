@@ -21,7 +21,16 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
 .env*.local
+!.env.example
+
+# secrets / tokens
+*.token
+.shopify_token
+
+# claude local settings (keep launch.json, ignore local overrides)
+.claude/settings.local.json
 
 # vercel
 .vercel
@@ -29,3 +38,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local Netlify folder
+.netlify

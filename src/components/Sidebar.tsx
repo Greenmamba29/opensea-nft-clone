@@ -3,16 +3,16 @@ import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 
 const navLinks = [
-  { icon: "◎", label: "Market Hub", href: "/" },
-  { icon: "⊞", label: "Marketplaces", href: "/rankings" },
-  { icon: "◐", label: "Price Index", href: "/tokens" },
-  { icon: "≡", label: "Order Activity", href: "/activity" },
-  { icon: "↓", label: "New Drops", href: "/drops" },
-  { icon: "⚡", label: "Rewards", href: "/rewards" },
-  { icon: "👤", label: "Buyer Dash", href: "/profile" },
-  { icon: "📋", label: "Supplier Portal", href: "/studio" },
-  { icon: "⚙", label: "Settings", href: "/settings" },
-  { icon: "?", label: "Support", href: "/support" },
+  { icon: "◎", label: "Market Hub", href: "/mall" },
+  { icon: "⊞", label: "Marketplaces", href: "/mall/rankings" },
+  { icon: "◐", label: "Price Index", href: "/mall/tokens" },
+  { icon: "≡", label: "Order Activity", href: "/mall/activity" },
+  { icon: "↓", label: "New Drops", href: "/mall/drops" },
+  { icon: "⚡", label: "Rewards", href: "/mall/rewards" },
+  { icon: "👤", label: "Buyer Dash", href: "/mall/profile" },
+  { icon: "📋", label: "Supplier Portal", href: "/mall/studio" },
+  { icon: "⚙", label: "Settings", href: "/mall/settings" },
+  { icon: "?", label: "Support", href: "/mall/support" },
 ];
 
 export default function Sidebar() {
