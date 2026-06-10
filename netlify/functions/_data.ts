@@ -1,4 +1,4 @@
-// Shared mock domain data for Accio Mall OS functions.
+// Shared mock domain data for GrahmOS Mall OS functions.
 // In production these reads/writes route to Neon Postgres (db/schema.sql) and
 // mirror to Airtable for staff workflows. Centralized here so the API surface
 // is real and typed while the persistence layer is wired up.
@@ -23,15 +23,47 @@ export interface MallOverview {
   zones: { name: string; slots: number; color: string }[];
 }
 
+// An Aisle is the mall's category unit (the BNY vertical). Mirrored client-side
+// in src/lib/mallData.ts so /mall pages render without API calls (demo-first).
+export interface Aisle {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+}
+
 export interface Storefront {
   id: string;
   merchant: string;
   storeType: "Retail Store" | "Brand Store" | "B2B Store" | "Pop-Up";
   category: string;
+  aisle: string; // Aisle slug
   tier: "rent" | "lease" | "own";
   status: "new" | "under_review" | "documents_pending" | "shortlisted" | "active";
   assignedAgent: string;
   monthlyLease: number;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  storefrontId: string;
+  aisle: string; // Aisle slug
+  price: number;
+  unit: string;
+  minOrder: number;
+}
+
+export interface Order {
+  id: string;
+  buyer: string;
+  storefrontId: string;
+  summary: string;
+  total: number;
+  status: "processing" | "shipped" | "delivered" | "cancelled";
+  createdAt: string;
 }
 
 export interface Quote {
@@ -39,6 +71,15 @@ export interface Quote {
   buyer: string;
   company: string;
   items: { sku: string; name: string; qty: number; unitPrice: number }[];
+  /** Free-form RFQ fields from the mall Quotes page (Alibaba-style request). */
+  request?: {
+    description: string;
+    quantity: number;
+    unit: string;
+    aisle?: string;
+    deadline?: string;
+    notes?: string;
+  };
   status:
     | "draft"
     | "submitted"
@@ -117,12 +158,53 @@ export const MALL_OVERVIEW: MallOverview = {
   ],
 };
 
+// The eight aisles of the BNY Digital Mall. Keep in sync with src/lib/mallData.ts.
+export const AISLES: Aisle[] = [
+  { id: "a_01", slug: "packaging", name: "Packaging", description: "Boxes, mailers, labels, and custom packaging from local converters.", icon: "📦", color: "#C9A227" },
+  { id: "a_02", slug: "fabrication", name: "Fabrication", description: "Metal, wood, and CNC shops for custom parts and short runs.", icon: "🔩", color: "#7C3AED" },
+  { id: "a_03", slug: "electronics", name: "Electronics", description: "Components, assemblies, and repair from neighborhood techs.", icon: "🔌", color: "#2DA8D8" },
+  { id: "a_04", slug: "apparel-merch", name: "Apparel & Merch", description: "Screen printing, embroidery, and branded merch in small batches.", icon: "👕", color: "#E06B8B" },
+  { id: "a_05", slug: "food-beverage", name: "Food & Beverage", description: "Roasters, bakers, and caterers for offices and events.", icon: "🍱", color: "#F2A687" },
+  { id: "a_06", slug: "office-services", name: "Office & Business Services", description: "Supplies, printing, and back-office services for teams.", icon: "🖇️", color: "#E5C963" },
+  { id: "a_07", slug: "logistics", name: "Logistics & Delivery", description: "Same-day courier, freight, and warehousing partners.", icon: "🚚", color: "#34c759" },
+  { id: "a_08", slug: "local-brands", name: "Local Brands", description: "Makers and brands born in the neighborhood.", icon: "🧶", color: "#B7D9C9" },
+];
+
 export const STOREFRONTS: Storefront[] = [
-  { id: "sf_01", merchant: "Brewed Awakenings", storeType: "Retail Store", category: "Food & Beverage", tier: "lease", status: "under_review", assignedAgent: "Ava Reynolds", monthlyLease: 359 },
-  { id: "sf_02", merchant: "Stationery House", storeType: "Retail Store", category: "Office Supplies", tier: "rent", status: "documents_pending", assignedAgent: "Liam Chen", monthlyLease: 179 },
-  { id: "sf_03", merchant: "Giftease Corp", storeType: "Brand Store", category: "Corporate Gifting", tier: "own", status: "shortlisted", assignedAgent: "Maya Kapoor", monthlyLease: 899 },
-  { id: "sf_04", merchant: "Artisan Lane", storeType: "Retail Store", category: "Local Makers", tier: "rent", status: "new", assignedAgent: "Noah Williams", monthlyLease: 59 },
-  { id: "sf_05", merchant: "SupplyHub Co.", storeType: "B2B Store", category: "B2B Sourcing", tier: "lease", status: "under_review", assignedAgent: "Ava Reynolds", monthlyLease: 359 },
+  { id: "sf_01", merchant: "Brewed Awakenings", storeType: "Retail Store", category: "Food & Beverage", aisle: "food-beverage", tier: "lease", status: "under_review", assignedAgent: "Ava Reynolds", monthlyLease: 359 },
+  { id: "sf_02", merchant: "Stationery House", storeType: "Retail Store", category: "Office Supplies", aisle: "office-services", tier: "rent", status: "documents_pending", assignedAgent: "Liam Chen", monthlyLease: 179 },
+  { id: "sf_03", merchant: "Giftease Corp", storeType: "Brand Store", category: "Corporate Gifting", aisle: "apparel-merch", tier: "own", status: "shortlisted", assignedAgent: "Maya Kapoor", monthlyLease: 899 },
+  { id: "sf_04", merchant: "Artisan Lane", storeType: "Retail Store", category: "Local Makers", aisle: "local-brands", tier: "rent", status: "new", assignedAgent: "Noah Williams", monthlyLease: 59 },
+  { id: "sf_05", merchant: "SupplyHub Co.", storeType: "B2B Store", category: "B2B Sourcing", aisle: "packaging", tier: "lease", status: "under_review", assignedAgent: "Ava Reynolds", monthlyLease: 359 },
+  { id: "sf_06", merchant: "BNY Metalworks", storeType: "B2B Store", category: "Fabrication", aisle: "fabrication", tier: "lease", status: "active", assignedAgent: "Liam Chen", monthlyLease: 459 },
+  { id: "sf_07", merchant: "Circuit & Co.", storeType: "Retail Store", category: "Electronics", aisle: "electronics", tier: "rent", status: "active", assignedAgent: "Maya Kapoor", monthlyLease: 219 },
+  { id: "sf_08", merchant: "Harbor Lines", storeType: "B2B Store", category: "Logistics & Delivery", aisle: "logistics", tier: "lease", status: "active", assignedAgent: "Noah Williams", monthlyLease: 389 },
+];
+
+export const PRODUCTS: Product[] = [
+  { id: "p_01", name: "Kraft Shipping Box 12×9×4", storefrontId: "sf_05", aisle: "packaging", price: 0.42, unit: "per box", minOrder: 250 },
+  { id: "p_02", name: "Custom-Print Mailer (Matte)", storefrontId: "sf_05", aisle: "packaging", price: 1.15, unit: "per mailer", minOrder: 500 },
+  { id: "p_03", name: "Laser-Cut Steel Bracket", storefrontId: "sf_06", aisle: "fabrication", price: 4.8, unit: "per piece", minOrder: 100 },
+  { id: "p_04", name: "CNC Aluminum Faceplate", storefrontId: "sf_06", aisle: "fabrication", price: 35, unit: "per piece", minOrder: 25 },
+  { id: "p_05", name: "USB-C Cable Assembly 1m", storefrontId: "sf_07", aisle: "electronics", price: 3.1, unit: "per unit", minOrder: 100 },
+  { id: "p_06", name: "LED Panel Module 24V", storefrontId: "sf_07", aisle: "electronics", price: 18.5, unit: "per module", minOrder: 20 },
+  { id: "p_07", name: "Embroidered Crewneck", storefrontId: "sf_03", aisle: "apparel-merch", price: 28, unit: "per piece", minOrder: 24 },
+  { id: "p_08", name: "Branded Tote (Canvas)", storefrontId: "sf_03", aisle: "apparel-merch", price: 9.4, unit: "per tote", minOrder: 50 },
+  { id: "p_09", name: "Cold Brew Keg 5L", storefrontId: "sf_01", aisle: "food-beverage", price: 58, unit: "per keg", minOrder: 2 },
+  { id: "p_10", name: "Office Pastry Box (24ct)", storefrontId: "sf_01", aisle: "food-beverage", price: 46, unit: "per box", minOrder: 1 },
+  { id: "p_11", name: "Recycled Copy Paper (Case)", storefrontId: "sf_02", aisle: "office-services", price: 38, unit: "per case", minOrder: 5 },
+  { id: "p_12", name: "Same-Day Courier (Zone 1)", storefrontId: "sf_08", aisle: "logistics", price: 12, unit: "per delivery", minOrder: 1 },
+  { id: "p_13", name: "Pallet Storage (Monthly)", storefrontId: "sf_08", aisle: "logistics", price: 24, unit: "per pallet", minOrder: 4 },
+  { id: "p_14", name: "Hand-Poured Candle Trio", storefrontId: "sf_04", aisle: "local-brands", price: 32, unit: "per set", minOrder: 6 },
+];
+
+export const ORDERS: Order[] = [
+  { id: "ord_2107", buyer: "Daniel Osei", storefrontId: "sf_05", summary: "Kraft Shipping Box 12×9×4 × 500", total: 210, status: "shipped", createdAt: "2026-06-08T10:05:00Z" },
+  { id: "ord_2101", buyer: "Daniel Osei", storefrontId: "sf_01", summary: "Cold Brew Keg 5L × 4", total: 232, status: "delivered", createdAt: "2026-06-05T16:40:00Z" },
+  { id: "ord_2096", buyer: "Priya Raman", storefrontId: "sf_03", summary: "Embroidered Crewneck × 48", total: 1344, status: "processing", createdAt: "2026-06-04T09:12:00Z" },
+  { id: "ord_2090", buyer: "Daniel Osei", storefrontId: "sf_07", summary: "USB-C Cable Assembly × 200", total: 620, status: "delivered", createdAt: "2026-05-29T13:25:00Z" },
+  { id: "ord_2083", buyer: "Priya Raman", storefrontId: "sf_08", summary: "Same-Day Courier (Zone 1) × 12", total: 144, status: "delivered", createdAt: "2026-05-26T11:00:00Z" },
+  { id: "ord_2074", buyer: "Daniel Osei", storefrontId: "sf_06", summary: "Laser-Cut Steel Bracket × 250", total: 1200, status: "cancelled", createdAt: "2026-05-19T15:30:00Z" },
 ];
 
 export const QUOTES: Quote[] = [

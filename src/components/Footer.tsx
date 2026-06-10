@@ -10,10 +10,10 @@ export default function Footer() {
           <span>Live</span>
         </div>
         <div className="flex items-center gap-1">
-          <span>⚡</span>
-          <span>Aggregating</span>
+          <span>✦</span>
+          <span>Concierge online</span>
         </div>
-        <a href="#" className="hover:text-[var(--os-text)]">Networks</a>
+        <a href="#" className="hover:text-[var(--os-text)]">Mall Map</a>
       </div>
 
       {/* Center */}

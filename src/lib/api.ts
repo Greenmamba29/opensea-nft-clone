@@ -1,4 +1,4 @@
-// Thin client for the Accio Netlify Functions API.
+// Thin client for the GrahmOS Netlify Functions API.
 // Pulls a WorkOS access token from the auth layer and attaches it as a Bearer
 // token so functions can verify the caller server-side.
 
@@ -109,14 +109,48 @@ export interface QuoteItem {
   unitPrice: number;
 }
 
+/** Free-form RFQ fields from the mall Quotes page (Alibaba-style request). */
+export interface QuoteRequestFields {
+  description: string;
+  quantity: number;
+  unit: string;
+  aisle?: string;
+  deadline?: string;
+  notes?: string;
+}
+
 export interface QuoteDraft {
   buyer?: string;
   company?: string;
+  items?: QuoteItem[];
+  request?: QuoteRequestFields;
+}
+
+export interface QuoteRecord {
+  id: string;
+  buyer: string;
+  company: string;
   items: QuoteItem[];
+  request?: QuoteRequestFields;
+  status:
+    | "draft"
+    | "submitted"
+    | "under_agent_review"
+    | "priced"
+    | "sent_to_buyer"
+    | "accepted"
+    | "rejected"
+    | "converted";
+  total: number;
+  createdAt: string;
 }
 
 export function submitQuote(
   payload: QuoteDraft
 ): Promise<{ quote: { id: string; total: number; status: string }; message: string }> {
   return api("/api/quotes", { method: "POST", body: JSON.stringify(payload) });
+}
+
+export function listQuotes(): Promise<{ quotes: QuoteRecord[] }> {
+  return api("/api/quotes");
 }

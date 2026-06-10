@@ -6,7 +6,7 @@ name: Deploy to Netlify
 # Required GitHub repo secrets (Settings → Secrets and variables → Actions):
 #   NETLIFY_AUTH_TOKEN  — a Netlify personal access token
 #                         (Netlify → User settings → Applications → New access token)
-#   NETLIFY_SITE_ID     — 302e39fd-7b07-4311-a3ec-1636eed5d824  (accio-virtual-mall)
+#   NETLIFY_SITE_ID     — 302e39fd-7b07-4311-a3ec-1636eed5d824  (grahmos-virtual-mall)
 #
 # Runtime app secrets (WorkOS, Anthropic) live in the Netlify dashboard, not here.
 

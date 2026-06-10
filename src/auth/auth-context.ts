@@ -1,19 +1,19 @@
 import { createContext, useContext } from "react";
 
-export type AccioRole = "buyer" | "seller" | "channel_partner" | "agent" | "operator";
+export type GrahmOSRole = "buyer" | "seller" | "channel_partner" | "agent" | "operator";
 
-export interface AccioUser {
+export interface GrahmOSUser {
   id: string;
   email: string;
   firstName?: string | null;
   lastName?: string | null;
   profilePictureUrl?: string | null;
   /** Role drives which experiences/dashboards are unlocked. */
-  role: AccioRole;
+  role: GrahmOSRole;
 }
 
-export interface AccioAuthValue {
-  user: AccioUser | null;
+export interface GrahmOSAuthValue {
+  user: GrahmOSUser | null;
   isLoading: boolean;
   /** True when running without WorkOS keys (local demo mode). */
   demoMode: boolean;
@@ -24,12 +24,12 @@ export interface AccioAuthValue {
   getAccessToken: () => Promise<string | null>;
 }
 
-export const AccioAuthContext = createContext<AccioAuthValue | null>(null);
+export const GrahmOSAuthContext = createContext<GrahmOSAuthValue | null>(null);
 
-export function useAccioAuth(): AccioAuthValue {
-  const ctx = useContext(AccioAuthContext);
+export function useGrahmOSAuth(): GrahmOSAuthValue {
+  const ctx = useContext(GrahmOSAuthContext);
   if (!ctx) {
-    throw new Error("useAccioAuth must be used within <AuthProvider>");
+    throw new Error("useGrahmOSAuth must be used within <AuthProvider>");
   }
   return ctx;
 }
@@ -37,12 +37,12 @@ export function useAccioAuth(): AccioAuthValue {
 export const WORKOS_CLIENT_ID: string | undefined = import.meta.env.VITE_WORKOS_CLIENT_ID;
 export const AUTH_ENABLED = Boolean(WORKOS_CLIENT_ID);
 
-/** Map a WorkOS user → an Accio role. In production this would come from
+/** Map a WorkOS user → an GrahmOS role. In production this would come from
  *  WorkOS Organization membership / role metadata; here we derive a sensible
  *  default and allow an email-domain override for the operator console. */
-export function deriveRole(email: string | undefined | null): AccioRole {
+export function deriveRole(email: string | undefined | null): GrahmOSRole {
   if (!email) return "buyer";
-  if (email.endsWith("@accio.market") || email.includes("+operator")) return "operator";
+  if (email.endsWith("@grahmos.market") || email.includes("+operator")) return "operator";
   if (email.includes("+seller")) return "seller";
   if (email.includes("+partner")) return "channel_partner";
   if (email.includes("+agent")) return "agent";

@@ -12,14 +12,14 @@ export default function TokensPage() {
 
   const activeFilters = [
     { label: "Market Cap: $100K-$500K", id: "mcap" },
-    { label: "Chain: Ethereum", id: "chain" }
+    { label: "Region: North America", id: "chain" }
   ];
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--os-bg)] text-[var(--os-text)]">
       {/* Header Section */}
       <div className="px-8 pt-8 pb-4 border-b border-[var(--os-border)]">
-        <h1 className="text-3xl font-extrabold mb-8 tracking-tight">Tokens</h1>
+        <h1 className="text-3xl font-extrabold mb-8 tracking-tight">Storefront Index</h1>
         
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-8">
@@ -52,11 +52,11 @@ export default function TokensPage() {
         {/* Sidebar */}
         <div className="w-72 border-r border-[var(--os-border)] overflow-y-auto p-6 hidden lg:block">
           <div className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--os-text-secondary)] mb-4">Chain</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--os-text-secondary)] mb-4">Region</h3>
             <div className="relative mb-4">
-              <input 
-                type="text" 
-                placeholder="Search chains" 
+              <input
+                type="text"
+                placeholder="Search regions"
                 className="w-full bg-[var(--os-surface-2)] border border-[var(--os-border)] rounded-xl py-2 px-4 text-sm focus:outline-none focus:border-[var(--os-blue)]"
               />
             </div>
@@ -97,14 +97,14 @@ export default function TokensPage() {
           </div>
 
           <div className="border-t border-[var(--os-border)] py-4 flex justify-between items-center">
-            <span className="font-semibold">Has NFT</span>
+            <span className="font-semibold">Verified stores only</span>
             <div className="w-10 h-5 bg-[var(--os-surface-3)] rounded-full relative cursor-pointer">
               <div className="w-3.5 h-3.5 bg-[var(--os-text-tertiary)] rounded-full absolute top-0.5 left-0.5"></div>
             </div>
           </div>
 
           <div className="border-t border-[var(--os-border)] py-4 flex justify-between items-center">
-            <span className="font-semibold">Branded Token Page</span>
+            <span className="font-semibold">Featured storefronts</span>
             <div className="w-10 h-5 bg-[var(--os-blue)] rounded-full relative cursor-pointer">
               <div className="w-3.5 h-3.5 bg-white rounded-full absolute top-0.5 right-0.5"></div>
             </div>
@@ -128,7 +128,7 @@ export default function TokensPage() {
             <thead className="sticky top-0 bg-[var(--os-bg)] z-10 shadow-sm">
               <tr className="border-b border-[var(--os-border)] text-[var(--os-text-secondary)] text-xs font-bold uppercase tracking-wider">
                 <th className="px-6 py-4 w-12">#</th>
-                <th className="px-6 py-4">Token</th>
+                <th className="px-6 py-4">Supply Item</th>
                 <th className="px-6 py-4 text-right">Price</th>
                 <th className="px-6 py-4 text-right">1h Change</th>
                 <th className="px-6 py-4 text-right bg-[var(--os-surface)]">1d Change</th>

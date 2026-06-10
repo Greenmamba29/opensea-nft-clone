@@ -1,21 +1,21 @@
-# Accio — White-Glove Virtual Mall
+# GrahmOS — White-Glove Virtual Mall
 
 A premium virtual mall and digital leasing platform where businesses, buyers,
 sellers, and channel partners transact through AI + human-assisted commerce
-agents. Built on the OpenSea-style scaffold, themed to the Accio brand.
+agents. Built on the OpenSea-style scaffold, themed to the GrahmOS brand.
 
 ## Routes
 
 | Path | What it is | Auth |
 |------|-----------|------|
-| `/` | **Accio landing** — marketing site with a Remotion-animated mall hero, storefront plans, aisles, live Concierge | public |
-| `/os` | **Accio Mall OS** — operator dashboard (occupancy, GMV, leases, tenant applications, agent queue, zoning map) | operator/agent |
+| `/` | **GrahmOS landing** — marketing site with a Remotion-animated mall hero, storefront plans, aisles, live Concierge | public |
+| `/os` | **GrahmOS Mall OS** — operator dashboard (occupancy, GMV, leases, tenant applications, agent queue, zoning map) | operator/agent |
 | `/mall` + `/mall/*` | The shopping experience (legacy dark scaffold) with the Concierge mounted | public |
 
 ## Stack
 
 - **Frontend:** Vite + React 18 + Tailwind 3, shadcn-style UI in `src/components/ui/`, recharts dashboards, Remotion (`@remotion/player`) for the animated hero.
-- **Auth:** WorkOS AuthKit (`@workos-inc/authkit-react`) via `src/auth/`. Unified `useAccioAuth()` hook; graceful **demo mode** when no `VITE_WORKOS_CLIENT_ID` is set. Role gating (`buyer`/`seller`/`channel_partner`/`agent`/`operator`).
+- **Auth:** WorkOS AuthKit (`@workos-inc/authkit-react`) via `src/auth/`. Unified `useGrahmOSAuth()` hook; graceful **demo mode** when no `VITE_WORKOS_CLIENT_ID` is set. Role gating (`buyer`/`seller`/`channel_partner`/`agent`/`operator`).
 - **Backend:** Netlify Functions (`netlify/functions/`), exposed under `/api/*` via the `@netlify/vite-plugin` (works under plain `npm run dev`). WorkOS access tokens verified server-side against JWKS (`jose`).
 - **Agent layer:** `/api/concierge` is powered by Claude (`claude-opus-4-8`) with a deterministic canned fallback so the white-glove widget always responds.
 

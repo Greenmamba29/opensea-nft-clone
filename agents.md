@@ -2,7 +2,7 @@
 
 > The agent architecture: what exists today, the planned roster, and the invariants that
 > govern any agent that touches a buyer, a quote, or money.
-> Source of truth: `netlify/functions/concierge.ts`, `src/components/accio/Concierge.tsx`.
+> Source of truth: `netlify/functions/concierge.ts`, `src/components/grahmos/Concierge.tsx`.
 
 ---
 
@@ -11,6 +11,14 @@
 The white-glove layer is the moat. A marketplace anyone can clone; an *agent-assisted
 commerce concierge* — AI-first, human-takeover, auditable — they cannot. Agents sit
 **across** the whole mall, not bolted onto one page.
+
+**The surface invariant: many agents architecturally, one voice and one visible
+surface.** Users only ever see **"GrahmOS Concierge"** — one name, one chat surface,
+everywhere. The specialist roster below (Product Match → Quote → Sourcing → Cart →
+Order Support → Human takeover) is routing machinery *behind* that surface. A buyer
+never sees an agent roster, a routing decision, or a "transferring you" message —
+including human takeover, which happens inside the same conversation with no seam.
+(PRD §4; soul.md §4 "one voice.")
 
 ## 2. What ships today
 
@@ -37,11 +45,12 @@ Concierge.tsx  ──POST /api/concierge──▶  concierge.ts  ──▶  Clau
 ## 3. The planned roster (Durable Objects, Phase 2+)
 
 Each agent is one Durable Object scope on Cloudflare (see `ARCHITECTURE.md` → Agent layer).
-Today they are conceptual; the concierge is their unified front door.
+Today they are conceptual; **GrahmOS Concierge is their only front door** — none of these
+ever gets its own buyer-facing UI (see §1, the surface invariant).
 
 | Agent | DO scope | Responsibility |
 |---|---|---|
-| **Mall Concierge** | per visitor session | Greet, navigate, route intent (← shipped as `/api/concierge`) |
+| **GrahmOS Concierge** | per visitor session | The one visible agent: greet, navigate, route intent (← shipped as `/api/concierge`) |
 | **Product Match** | per search | NL discovery, alternatives, no dead ends |
 | **B2B Sourcing** | per sourcing request | Route demand to vendors/partners |
 | **Quote** | per quote | Lifecycle: draft → priced → accepted → order |
@@ -64,7 +73,8 @@ order / return    → Order Support
 ```
 
 Today this lives as prompt-guided routing in the `SYSTEM` string + `cannedReply()`
-heuristics. In Phase 2 it becomes explicit hand-offs between Durable Objects.
+heuristics. In Phase 2 it becomes explicit hand-offs between Durable Objects — but the
+hand-offs stay invisible: the buyer keeps talking to "GrahmOS Concierge" throughout.
 
 ## 5. Invariants (every agent obeys)
 
@@ -78,7 +88,9 @@ heuristics. In Phase 2 it becomes explicit hand-offs between Durable Objects.
    approval — these *require* human approval, enforced in the Worker/function, **not** in
    the prompt. Prompts are not a security boundary.
 5. **Currency-agnostic.** Agents quote and transact in any currency; crypto is additive.
-6. **One voice.** The `SYSTEM` prompt is the canonical voice (see `soul.md` §4).
+6. **One voice, one surface.** The `SYSTEM` prompt is the canonical voice (see
+   `soul.md` §4), and "GrahmOS Concierge" is the only agent name or surface a user
+   ever sees (§1). Specialists never speak under their own name.
 
 ## 6. Model & API conventions
 
@@ -97,3 +109,5 @@ heuristics. In Phase 2 it becomes explicit hand-offs between Durable Objects.
 4. Identify money-moving actions → add the human approval gate in code.
 5. Keep the voice — extend the `SYSTEM` prompt, don't fork it.
 6. Add a deterministic fallback so the surface never dead-ends.
+7. **Never add a new visible agent.** The new specialist routes through GrahmOS
+   Concierge; it gets no buyer-facing name, avatar, or chat surface of its own.

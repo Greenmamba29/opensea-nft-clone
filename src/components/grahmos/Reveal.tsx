@@ -2,7 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-/** Fade-and-rise reveal when the element scrolls into view. */
+/** Fade-and-rise reveal when the element scrolls into view.
+ *  Respects prefers-reduced-motion (content appears without translation). */
 export default function Reveal({
   children,
   className,
@@ -14,6 +15,15 @@ export default function Reveal({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
 
   useEffect(() => {
     const el = ref.current;
@@ -30,6 +40,10 @@ export default function Reveal({
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
+
+  if (reduced) {
+    return <div className={className}>{children}</div>;
+  }
 
   return (
     <div

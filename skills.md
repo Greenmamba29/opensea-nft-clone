@@ -19,8 +19,8 @@ the others.
 | **Storefront lifecycle** | `netlify/functions/storefronts.ts` | apply / list tenants |
 | **B2B quote engine** | `netlify/functions/quotes.ts` | quote create / price |
 | **Design system** | `src/components/ui/` + theme | every surface |
-| **Marketing / conversion** | `src/pages/accio/LandingPage.tsx` + `MallHero.tsx` | `/` |
-| **Legacy shopping** | `src/pages/*` (non-accio) | `/mall/*` |
+| **Marketing / conversion** | `src/pages/grahmos/LandingPage.tsx` + `MallHero.tsx` | `/` |
+| **Legacy shopping** | `src/pages/*` (non-grahmos) | `/mall/*` |
 
 ## 2. Conventions that make changes fast
 
@@ -37,7 +37,7 @@ the others.
 - **Demo-mode everything.** Every capability degrades gracefully with no keys: auth →
   demo operator, concierge → canned, so the app always runs and demos.
 - **Role-gate by default.** New non-consumer capability ⇒ wrap in `ProtectedRoute` /
-  check `useAccioAuth().user.role`.
+  check `useGrahmOSAuth().user.role`.
 
 ## 3. External skills & services the system uses
 

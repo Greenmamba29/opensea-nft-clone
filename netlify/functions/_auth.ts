@@ -41,7 +41,7 @@ function getJwks() {
 
 function deriveRole(email?: string): string {
   if (!email) return "buyer";
-  if (email.endsWith("@accio.market") || email.includes("+operator")) return "operator";
+  if (email.endsWith("@grahmos.market") || email.includes("+operator")) return "operator";
   if (email.includes("+seller")) return "seller";
   if (email.includes("+partner")) return "channel_partner";
   if (email.includes("+agent")) return "agent";
@@ -78,7 +78,7 @@ export async function authenticate(req: Request): Promise<AuthedUser | null> {
   // Otherwise fail closed (anonymous), so a misconfigured prod deploy does not
   // hand every caller operator access.
   if (DEMO_MODE) {
-    return { id: "demo_operator", email: "demo+operator@accio.market", role: "operator", demo: true };
+    return { id: "demo_operator", email: "demo+operator@grahmos.market", role: "operator", demo: true };
   }
   return null;
 }

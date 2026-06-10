@@ -4,7 +4,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { authenticate, json } from "./_auth";
 
 /**
- * Accio white-glove concierge — the agent-assisted layer.
+ * GrahmOS white-glove concierge — the agent-assisted layer.
  *
  * POST /api/concierge  { messages: [{role, content}], surface?: string }
  *
@@ -12,7 +12,7 @@ import { authenticate, json } from "./_auth";
  * reply when ANTHROPIC_API_KEY is not configured, so the UI works in any env.
  */
 
-const SYSTEM = `You are the Accio Concierge — the white-glove AI commerce agent for Accio,
+const SYSTEM = `You are the GrahmOS Concierge — the white-glove AI commerce agent for GrahmOS,
 a premium virtual mall where brands rent, lease, or own digital storefronts and
 buyers shop across B2C, D2C, and B2B with human + AI agent support.
 
@@ -35,12 +35,12 @@ function cannedReply(messages: ChatMessage[]): string {
     return "I can help with that. Tell me the product and quantity, and I'll open a B2B quote and route it to our sourcing agents for verified pricing — usually back within 24 hours.";
   }
   if (last.includes("storefront") || last.includes("lease") || last.includes("rent") || last.includes("sell")) {
-    return "Wonderful — Accio offers Pop-Up, Starter, Premium, and Anchor storefronts. Tell me your category and goals and I'll match you with a leasing concierge to secure your placement.";
+    return "Wonderful — GrahmOS offers Pop-Up, Starter, Premium, and Anchor storefronts. Tell me your category and goals and I'll match you with a leasing concierge to secure your placement.";
   }
   if (last.includes("source") || last.includes("supplier") || last.includes("find")) {
-    return "I'll put our sourcing desk on it. Share what you're looking for (specs, quantity, timeline) and I'll match verified partners in the Accio network — no dead ends.";
+    return "I'll put our sourcing desk on it. Share what you're looking for (specs, quantity, timeline) and I'll match verified partners in the GrahmOS network — no dead ends.";
   }
-  return "Hi! I'm your Accio Concierge. I can help you find suppliers, compare quotes, source products, or lease the perfect storefront. What are you working on today?";
+  return "Hi! I'm your GrahmOS Concierge. I can help you find suppliers, compare quotes, source products, or lease the perfect storefront. What are you working on today?";
 }
 
 export default async (req: Request, _context: Context) => {
@@ -67,7 +67,7 @@ export default async (req: Request, _context: Context) => {
 
   try {
     const client = new Anthropic({ apiKey });
-    const surfaceNote = body.surface ? `\n\nThe buyer is currently on the "${body.surface}" surface of Accio.` : "";
+    const surfaceNote = body.surface ? `\n\nThe buyer is currently on the "${body.surface}" surface of GrahmOS.` : "";
     const response = await client.messages.create({
       model: "claude-opus-4-8",
       max_tokens: 1024,

@@ -13,7 +13,7 @@ interface Msg {
 const GREETING: Msg = {
   role: "assistant",
   content:
-    "Hi! I'm your Accio Concierge. I can help you find suppliers, compare quotes, source products, or lease the perfect storefront. What are you working on today?",
+    "Hi! I'm your GrahmOS Concierge. I can help you find suppliers, compare quotes, source products, or lease the perfect storefront. What are you working on today?",
 };
 
 const PROMPTS = [
@@ -30,6 +30,19 @@ export default function Concierge({ surface }: { surface?: string }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Allow other surfaces (e.g. the landing hero) to pop the widget open and
+  // optionally pre-fill the visitor's intent: window.dispatchEvent(
+  //   new CustomEvent("grahmos:open-concierge", { detail: { intent } }))
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      setOpen(true);
+      const intent = (e as CustomEvent<{ intent?: string }>).detail?.intent;
+      if (intent) setInput(intent);
+    };
+    window.addEventListener("grahmos:open-concierge", onOpen);
+    return () => window.removeEventListener("grahmos:open-concierge", onOpen);
+  }, []);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -63,16 +76,16 @@ export default function Concierge({ surface }: { surface?: string }) {
   }
 
   return (
-    <div className="accio-theme fixed bottom-5 right-5 z-[60] flex flex-col items-end">
+    <div className="grahmos-theme fixed bottom-5 right-5 z-[60] flex flex-col items-end">
       {open && (
         <div className="mb-3 flex h-[30rem] w-[22rem] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
           {/* Header */}
-          <div className="flex items-center gap-3 bg-gradient-to-r from-accio-purple-deep to-accio-purple px-4 py-3 text-white">
+          <div className="flex items-center gap-3 bg-gradient-to-r from-grahmos-purple-deep to-grahmos-purple px-4 py-3 text-white">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
-              <Sparkles className="h-4 w-4 text-accio-gold-light" />
+              <Sparkles className="h-4 w-4 text-grahmos-gold-light" />
             </span>
             <div className="flex-1">
-              <div className="text-sm font-bold leading-tight">Accio Concierge</div>
+              <div className="text-sm font-bold leading-tight">GrahmOS Concierge</div>
               <div className="text-[11px] text-white/70">
                 <span className="text-emerald-300">●</span> White-glove · Human + AI
               </div>
@@ -83,7 +96,7 @@ export default function Concierge({ surface }: { surface?: string }) {
           </div>
 
           {/* Messages */}
-          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-accio-cream/40 p-4">
+          <div ref={scrollRef} className="flex-1 space-y-3 overflow-y-auto bg-grahmos-cream/40 p-4">
             {messages.map((m, i) => (
               <div
                 key={i}
@@ -147,7 +160,7 @@ export default function Concierge({ surface }: { surface?: string }) {
       {/* Launcher */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="flex h-14 items-center gap-2.5 rounded-full bg-gradient-to-r from-accio-purple-deep to-accio-purple px-5 text-white shadow-xl transition-transform hover:scale-105"
+        className="flex h-14 items-center gap-2.5 rounded-full bg-gradient-to-r from-grahmos-purple-deep to-grahmos-purple px-5 text-white shadow-xl transition-transform hover:scale-105"
       >
         <Headset className="h-5 w-5" />
         {!open && <span className="text-sm font-semibold">Ask Concierge</span>}

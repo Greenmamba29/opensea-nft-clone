@@ -1,8 +1,39 @@
 import React from "react";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Header() {
+  const { pathname } = useLocation();
+  const guided = pathname.startsWith("/mall/directions");
+
   return (
-    <header className="sticky top-0 z-40 h-14 bg-os-bg/80 backdrop-blur-md flex items-center px-4 border-b border-[var(--os-border)]">
+    <header className="sticky top-0 z-40 h-14 bg-os-bg/80 backdrop-blur-md flex items-center px-4 border-b border-[var(--os-border)] gap-4">
+      {/* Wordmark */}
+      <Link to="/mall" className="flex items-center gap-2 font-black tracking-tight whitespace-nowrap">
+        <span>GrahmOS</span>
+        <span className="text-[var(--os-gold)]">✦</span>
+        <span className="hidden md:inline text-[var(--os-text-secondary)] font-bold">Virtual Mall</span>
+      </Link>
+
+      {/* Browse / Guided mode toggle */}
+      <div className="flex bg-[var(--os-surface-2)] rounded-xl p-1 text-sm font-bold">
+        <Link
+          to="/mall"
+          className={`px-3 py-1 rounded-lg transition-colors ${
+            !guided ? "bg-[var(--os-surface-3)]" : "text-[var(--os-text-secondary)] hover:text-[var(--os-text)]"
+          }`}
+        >
+          Browse
+        </Link>
+        <Link
+          to="/mall/directions"
+          className={`px-3 py-1 rounded-lg transition-colors ${
+            guided ? "bg-[var(--os-surface-3)]" : "text-[var(--os-text-secondary)] hover:text-[var(--os-text)]"
+          }`}
+        >
+          Guided
+        </Link>
+      </div>
+
       {/* Search Bar */}
       <div className="flex-1 max-w-[600px] relative">
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-[var(--os-text-tertiary)]">
@@ -10,7 +41,7 @@ export default function Header() {
         </div>
         <input
           type="text"
-          placeholder="Search Products, Marketplaces, or CAS #"
+          placeholder="Search storefronts, products, or aisles"
           className="w-full h-10 pl-10 pr-10 bg-[var(--os-surface-2)] border border-[var(--os-border)] rounded-xl focus:border-[var(--os-blue)] transition-colors text-sm"
         />
         <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
@@ -22,17 +53,12 @@ export default function Header() {
 
       {/* Right Side Actions */}
       <div className="flex items-center ml-auto gap-3 text-sm font-semibold">
-        <div className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-[var(--os-surface-2)] cursor-pointer">
-          <span className="text-lg">📈</span>
-          <span>GMV: $680M</span>
-        </div>
-        
         <button className="p-2 rounded-lg hover:bg-[var(--os-surface-2)] text-xl">
           🔔
         </button>
 
         <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--os-blue)] hover:bg-opacity-90 transition-colors">
-          <span>Company Login</span>
+          <span>Sign in</span>
         </button>
       </div>
     </header>

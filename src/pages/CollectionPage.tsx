@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { nftItems, traits, collections } from "@/data/mock";
 
 export default function CollectionPage() {
-  const [activeTab, setActiveTab] = useState("Items");
+  const [activeTab, setActiveTab] = useState("Products");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const collection = collections[0]; // Pudgy Penguins
 
@@ -18,7 +18,7 @@ export default function CollectionPage() {
           <div className="flex justify-between items-end">
             <div className="flex flex-col">
               <div className="w-32 h-32 rounded-2xl bg-[var(--os-surface-2)] border-4 border-[var(--os-bg)] flex items-center justify-center text-6xl shadow-xl mb-4">
-                🐧
+                {collection.image}
               </div>
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-3xl font-bold">{collection.name}</h1>
@@ -37,30 +37,30 @@ export default function CollectionPage() {
               </div>
 
               <div className="flex flex-wrap gap-2 mb-8">
-                <Badge text="BY THEIGLOCOMP..." secondary />
-                <Badge text="ETHEREUM" />
-                <Badge text="8,888 ITEMS" />
-                <Badge text="JUL 2021" />
-                <Badge text="PFPS" />
+                <Badge text="GRAHMOS VERIFIED TENANT" secondary />
+                <Badge text="B2B STORE" />
+                <Badge text="125,000 PRODUCTS" />
+                <Badge text="OPENED 2021" />
+                <Badge text="PACKAGING AISLE" />
               </div>
             </div>
           </div>
 
           {/* Stats Row */}
           <div className="flex gap-8 mb-8 overflow-x-auto pb-4">
-            <Stat label="FLOOR PRICE" value="$44.7K" />
-            <Stat label="1D FLOOR %" value="+5.2%" color="var(--os-green)" />
-            <Stat label="TOP OFFER" value="$43.7K" />
-            <Stat label="24H VOLUME" value="$1.8M" />
-            <Stat label="TOTAL VOLUME" value="$1.2B" />
-            <Stat label="OWNERS (UNIQUE)" value="4,966 (55.9%)" />
+            <Stat label="FROM PRICE" value="$2.4K" />
+            <Stat label="SALES TREND" value="+5.2%" color="var(--os-green)" />
+            <Stat label="AVG ORDER" value="$2.4K" />
+            <Stat label="MONTHLY SALES" value="$1.8M" />
+            <Stat label="LIFETIME SALES" value="$48M" />
+            <Stat label="CUSTOMERS" value="4,966" />
           </div>
         </div>
       </div>
 
       {/* Tab Navigation */}
       <div className="px-8 border-b border-[var(--os-border)] mb-6 flex gap-8">
-        {["Explore", "Items", "Tokens", "Offers", "Holders", "Traits", "Activity", "About"].map((tab) => (
+        {["Explore", "Products", "Services", "Quotes", "Reviews", "Specs", "About"].map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -88,15 +88,15 @@ export default function CollectionPage() {
             
             <FilterSection title="Status">
               <ToggleRow label="All" active />
-              <ToggleRow label="Listed" />
-              <ToggleRow label="Owned by you" />
+              <ToggleRow label="In stock" />
+              <ToggleRow label="Previously ordered" />
             </FilterSection>
 
-            <Accordion title="Rarity" />
+            <Accordion title="Lead Time" />
             <Accordion title="Price" />
-            <Accordion title="Marketplaces" />
-            
-            <Accordion title="Traits" open>
+            <Accordion title="Certifications" />
+
+            <Accordion title="Specs" open>
               {traits.map((trait) => (
                 <div key={trait.category} className="flex justify-between items-center py-2 text-sm text-[var(--os-text-secondary)] hover:text-white cursor-pointer">
                   <span>{trait.category}</span>
@@ -117,7 +117,7 @@ export default function CollectionPage() {
             <div className="relative flex-grow">
               <input
                 type="text"
-                placeholder="Search by item or trait"
+                placeholder="Search products"
                 className="w-full bg-[var(--os-surface-2)] border border-[var(--os-border)] rounded-xl py-2 pl-10 pr-4 focus:outline-none focus:border-[var(--os-text-secondary)]"
               />
               <span className="absolute left-3 top-2.5 text-[var(--os-text-secondary)]">🔍</span>
@@ -127,7 +127,7 @@ export default function CollectionPage() {
               <select className="bg-[var(--os-surface-2)] border border-[var(--os-border)] rounded-xl px-4 py-2 text-sm focus:outline-none">
                 <option>Price low to high</option>
                 <option>Price high to low</option>
-                <option>Recently listed</option>
+                <option>Recently added</option>
               </select>
               
               <div className="flex border border-[var(--os-border)] rounded-xl overflow-hidden">
@@ -141,7 +141,7 @@ export default function CollectionPage() {
             </div>
           </div>
 
-          <div className="text-xs font-bold text-[var(--os-text-secondary)] mb-4">8,888 ITEMS</div>
+          <div className="text-xs font-bold text-[var(--os-text-secondary)] mb-4">125,000 PRODUCTS</div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {nftItems.map((item) => (
@@ -156,7 +156,7 @@ export default function CollectionPage() {
         <div className="flex items-center gap-6">
           <div className="flex bg-[var(--os-surface-2)] rounded-lg p-1">
             <button className="px-4 py-1.5 rounded-md bg-[var(--os-surface-3)] text-sm font-bold">Buy</button>
-            <button className="px-4 py-1.5 rounded-md hover:bg-[var(--os-surface-3)] text-sm font-bold text-[var(--os-text-secondary)]">Sell</button>
+            <button className="px-4 py-1.5 rounded-md hover:bg-[var(--os-surface-3)] text-sm font-bold text-[var(--os-text-secondary)]">Request quote</button>
           </div>
           
           <div className="flex items-center gap-3">
@@ -169,21 +169,20 @@ export default function CollectionPage() {
 
           <div className="flex flex-col">
             <div className="flex items-center gap-1 text-[var(--os-text-secondary)] text-xs mb-1">
-              Max Price Per Item <span className="cursor-help text-[10px] border border-[var(--os-text-secondary)] rounded-full w-3 h-3 flex items-center justify-center">i</span>
+              Max Price Per Unit <span className="cursor-help text-[10px] border border-[var(--os-text-secondary)] rounded-full w-3 h-3 flex items-center justify-center">i</span>
             </div>
             <div className="flex items-center gap-2">
               <input type="text" value="0" readOnly className="bg-transparent font-bold w-8 focus:outline-none" />
               <select className="bg-transparent text-xs font-bold focus:outline-none">
                 <option>USD</option>
-                <option>ETH</option>
               </select>
             </div>
           </div>
         </div>
 
         <div className="flex gap-3">
-          <button className="px-6 py-3 border border-[var(--os-border)] rounded-xl font-bold text-sm hover:bg-[var(--os-surface-2)]">Make collection offer</button>
-          <button className="px-8 py-3 bg-[var(--os-blue)] rounded-xl font-bold text-sm hover:brightness-110">Buy floor</button>
+          <button className="px-6 py-3 border border-[var(--os-border)] rounded-xl font-bold text-sm hover:bg-[var(--os-surface-2)]">Request a quote</button>
+          <button className="px-8 py-3 bg-[var(--os-blue)] rounded-xl font-bold text-sm hover:brightness-110">Buy now</button>
         </div>
       </div>
     </div>
@@ -266,7 +265,7 @@ function NFTCard({ item }: { item: any }) {
           <span className="font-bold text-sm truncate">{item.name}</span>
         </div>
         <div className="flex items-center gap-1 text-[var(--os-text-secondary)] text-[10px] font-bold mb-3">
-          <span className="text-[var(--os-blue)]">💠</span> #{item.rarity}
+          <span className="text-[var(--os-blue)]">💠</span> SKU #{item.rarity}
         </div>
         <div className="flex flex-col">
           <span className="font-bold text-lg">{item.price}</span>

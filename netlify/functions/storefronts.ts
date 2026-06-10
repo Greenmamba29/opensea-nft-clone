@@ -40,7 +40,7 @@ export default async (req: Request, _context: Context) => {
     // create an Agent Task for white-glove onboarding. (Public endpoint — add
     // rate limiting / captcha before launch.)
     void user; // applicant may be anonymous; captured if signed in
-    return json({ storefront: created, message: "Application received. An Accio agent will reach out." }, 201);
+    return json({ storefront: created, message: "Application received. An GrahmOS agent will reach out." }, 201);
   }
 
   return json({ error: "method_not_allowed" }, 405);

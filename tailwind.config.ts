@@ -24,8 +24,8 @@ const config: Config = {
           green: "#34c759",
           red: "#eb5757",
         },
-        // Accio brand palette
-        accio: {
+        // GrahmOS brand palette
+        grahmos: {
           purple: "#5B21B6",
           "purple-deep": "#3B1680",
           "purple-light": "#7C3AED",

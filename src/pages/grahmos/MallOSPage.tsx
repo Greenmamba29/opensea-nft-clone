@@ -43,7 +43,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Modal } from "@/components/ui/modal";
-import { useAccioAuth } from "@/auth/auth-context";
+import { useGrahmOSAuth } from "@/auth/auth-context";
 import {
   getMallOverview,
   listStorefronts,
@@ -175,7 +175,7 @@ const NAV = [
 
 export default function MallOSPage() {
   const [trendMode, setTrendMode] = useState<"revenue" | "gmv">("revenue");
-  const { user, signOut } = useAccioAuth();
+  const { user, signOut } = useGrahmOSAuth();
 
   // Live data from /api/mall/overview + /api/storefronts, with static fallback.
   const [ov, setOv] = useState<MallOverview>(FALLBACK_OVERVIEW);
@@ -219,16 +219,16 @@ export default function MallOSPage() {
       : user?.email ?? "Sophia Carter";
 
   return (
-    <div className="accio-theme flex min-h-screen">
+    <div className="grahmos-theme flex min-h-screen">
       {/* Sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col bg-accio-ink text-white/70 lg:flex">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-56 flex-col bg-grahmos-ink text-white/70 lg:flex">
         <Link to="/" className="flex items-center gap-2.5 px-5 py-5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-accio-gold-light to-accio-gold font-display text-lg font-bold text-accio-ink">
+          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-grahmos-gold-light to-grahmos-gold font-display text-lg font-bold text-grahmos-ink">
             A
           </span>
           <span className="font-display text-base font-bold leading-tight text-white">
-            ACCIO<br />
-            <span className="text-[10px] font-semibold tracking-[0.25em] text-accio-gold">MALL OS</span>
+            GRAHMOS<br />
+            <span className="text-[10px] font-semibold tracking-[0.25em] text-grahmos-gold">MALL OS</span>
           </span>
         </Link>
         <div className="px-5 pb-2 pt-3 text-[10px] font-bold uppercase tracking-wider text-white/40">Main</div>
@@ -238,7 +238,7 @@ export default function MallOSPage() {
               key={n.label}
               href="#"
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                n.active ? "bg-accio-purple text-white" : "hover:bg-white/5 hover:text-white"
+                n.active ? "bg-grahmos-purple text-white" : "hover:bg-white/5 hover:text-white"
               }`}
             >
               <n.icon className="h-4 w-4" /> {n.label}
@@ -249,12 +249,12 @@ export default function MallOSPage() {
             <Settings className="h-4 w-4" /> Settings
           </a>
         </nav>
-        <div className="m-4 rounded-xl bg-gradient-to-br from-accio-purple-deep to-accio-purple p-4">
-          <Sparkles className="mb-2 h-5 w-5 text-accio-gold" />
+        <div className="m-4 rounded-xl bg-gradient-to-br from-grahmos-purple-deep to-grahmos-purple p-4">
+          <Sparkles className="mb-2 h-5 w-5 text-grahmos-gold" />
           <div className="text-sm font-bold leading-snug text-white">
             White-Glove.<br />
-            <span className="text-accio-gold-light">Premium Results.</span><br />
-            Powered by Accio.
+            <span className="text-grahmos-gold-light">Premium Results.</span><br />
+            Powered by GrahmOS.
           </div>
         </div>
       </aside>
@@ -401,8 +401,8 @@ export default function MallOSPage() {
               </CardHeader>
               <CardContent>
                 <div className="mb-3 flex gap-5 text-xs font-medium text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded bg-accio-purple" /> Lease Revenue (USD)</span>
-                  <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded bg-accio-gold" /> GMV (USD)</span>
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded bg-grahmos-purple" /> Lease Revenue (USD)</span>
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-4 rounded bg-grahmos-gold" /> GMV (USD)</span>
                 </div>
                 <div className="h-60">
                   <ResponsiveContainer>
@@ -608,15 +608,15 @@ export default function MallOSPage() {
                   <div className="mb-3 text-sm font-bold">Placement Intelligence</div>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start gap-2.5">
-                      <Crown className="mt-0.5 h-4 w-4 text-accio-gold" />
+                      <Crown className="mt-0.5 h-4 w-4 text-grahmos-gold" />
                       <span><b>High Demand Zones</b><br /><span className="text-xs text-muted-foreground">Gifting Pavilion, Grand Atrium</span></span>
                     </div>
                     <div className="flex items-start gap-2.5">
-                      <Landmark className="mt-0.5 h-4 w-4 text-accio-gold" />
+                      <Landmark className="mt-0.5 h-4 w-4 text-grahmos-gold" />
                       <span><b>Low Vacancy Zones</b><br /><span className="text-xs text-muted-foreground">Food Hall, Office Emporium</span></span>
                     </div>
                     <div className="flex items-start gap-2.5">
-                      <Sparkles className="mt-0.5 h-4 w-4 text-accio-gold" />
+                      <Sparkles className="mt-0.5 h-4 w-4 text-grahmos-gold" />
                       <span><b>Opportunity Areas</b><br /><span className="text-xs text-muted-foreground">Makers' District, B2B Exchange</span></span>
                     </div>
                   </div>

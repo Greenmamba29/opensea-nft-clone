@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { nftItems } from "@/data/mock";
 
 export default function NFTDetailPage() {
@@ -45,11 +45,11 @@ export default function NFTDetailPage() {
           <div className="flex justify-between items-start mb-2">
             <div>
               <div className="flex items-center gap-1 text-[var(--os-blue)] font-bold mb-2">
-                Pudgy Penguins <span className="text-sm">✔️</span>
+                BNY Metalworks <span className="text-sm">✔️</span>
               </div>
               <h1 className="text-4xl font-bold mb-4">{nft.name}</h1>
               <div className="text-[var(--os-text-secondary)] text-sm mb-6">
-                Owned by <span className="text-[var(--os-blue)] font-semibold">0x2233...20a6</span>
+                Sold by <span className="text-[var(--os-blue)] font-semibold">BNY Metalworks</span> · ships in 5 business days
               </div>
             </div>
             
@@ -65,27 +65,27 @@ export default function NFTDetailPage() {
           </div>
 
           <div className="flex gap-2 mb-8">
-            <Badge text="ERC721" />
-            <Badge text="ETHEREUM" />
-            <Badge text={`TOKEN #${nft.id}`} />
+            <Badge text="IN STOCK" />
+            <Badge text="SHIPS NATIONWIDE" />
+            <Badge text={`SKU #${nft.id}`} />
           </div>
 
           {/* Price Info Box */}
           <div className="bg-[var(--os-surface)] border border-[var(--os-border)] rounded-2xl p-6 mb-6">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
-              <PriceStat label="TOP OFFER" value="$43.4K" />
-              <PriceStat label="COLLECTION FLOOR" value="$45.1K" />
-              <PriceStat label="RARITY" value={`#${nft.rarity}`} />
-              <PriceStat label="LAST SALE" value="$54.3K" />
+              <PriceStat label="BULK PRICE" value="$2.1K" />
+              <PriceStat label="FROM PRICE" value="$2.4K" />
+              <PriceStat label="MIN ORDER" value="1 unit" />
+              <PriceStat label="LAST SALE" value={nft.lastSale} />
             </div>
             
             <div className="pt-6 border-t border-[var(--os-border)]">
-              <div className="text-[var(--os-text-secondary)] text-xs font-bold mb-2">BUY FOR</div>
-              <div className="text-3xl font-bold mb-6">$45.1K <span className="text-xs text-[var(--os-text-secondary)]">ENDING IN 4 WEEKS</span></div>
-              
+              <div className="text-[var(--os-text-secondary)] text-xs font-bold mb-2">PRICE</div>
+              <div className="text-3xl font-bold mb-6">{nft.price} <span className="text-xs text-[var(--os-text-secondary)]">FREE DELIVERY OVER $500</span></div>
+
               <div className="flex gap-4">
                 <button className="flex-1 py-4 bg-[var(--os-blue)] rounded-xl font-bold text-lg hover:brightness-110">Buy now</button>
-                <button className="flex-1 py-4 border border-[var(--os-border)] rounded-xl font-bold text-lg hover:bg-[var(--os-surface-2)]">Make offer</button>
+                <Link to="/mall/quotes" className="flex-1 py-4 border border-[var(--os-border)] rounded-xl font-bold text-lg hover:bg-[var(--os-surface-2)] text-center">Request quote</Link>
               </div>
             </div>
           </div>
@@ -112,7 +112,7 @@ export default function NFTDetailPage() {
           <div className="mb-8">
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2 font-bold">
-                <span className="text-[var(--os-blue)]">💠</span> TRAITS 5
+                <span className="text-[var(--os-blue)]">💠</span> SPECS 5
               </div>
               <div className="flex bg-[var(--os-surface-2)] rounded-lg p-0.5 border border-[var(--os-border)]">
                 <button className="p-1 px-2 rounded-md bg-[var(--os-surface-3)]">田</button>
@@ -121,11 +121,11 @@ export default function NFTDetailPage() {
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              <TraitCard label="BACKGROUND" value="Purple" count="1,282" percentage="14%" price="$45.1K" />
-              <TraitCard label="SKIN" value="Olive Green" count="705" percentage="8%" price="$45.1K" />
-              <TraitCard label="BODY" value="Lei Pink" count="168" percentage="2%" price="$45.1K" />
-              <TraitCard label="FACE" value="Eyepatch" count="426" percentage="5%" price="$45.1K" />
-              <TraitCard label="HEAD" value="Camo Helmet" count="248" percentage="3%" price="$45.1K" />
+              <TraitCard label="MATERIAL" value="Stainless Steel" count="1,282" percentage="14%" price="$2.4K" />
+              <TraitCard label="CERTIFICATION" value="ISO 9001" count="705" percentage="8%" price="$2.4K" />
+              <TraitCard label="LEAD TIME" value="5 Business Days" count="168" percentage="2%" price="$2.4K" />
+              <TraitCard label="ORIGIN" value="United States" count="426" percentage="5%" price="$2.4K" />
+              <TraitCard label="WARRANTY" value="2 Years" count="248" percentage="3%" price="$2.4K" />
             </div>
           </div>
         </div>
@@ -170,7 +170,7 @@ function TraitCard({ label, value, count, percentage, price }: {
         <div className="text-[var(--os-text-secondary)] text-[10px] font-semibold">{percentage}</div>
         <div className="px-1.5 py-0.5 bg-[var(--os-surface-3)] rounded text-[9px] font-bold">{count}</div>
       </div>
-      <div className="mt-2 text-[11px] font-bold">Floor: {price}</div>
+      <div className="mt-2 text-[11px] font-bold">From: {price}</div>
     </div>
   );
 }

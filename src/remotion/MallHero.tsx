@@ -1,7 +1,7 @@
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 
 /**
- * Accio Mall hero composition — a looping cinematic of the virtual mall:
+ * GrahmOS Mall hero composition — a looping cinematic of the virtual mall:
  * storefront cards spring into the atrium, the concierge greets, gold dust drifts.
  * Rendered in-browser via @remotion/player on the landing page.
  */
@@ -89,7 +89,7 @@ export function MallHero() {
 
   const sidebarIn = spring({ frame: frame - 8, fps, config: { damping: 16 } });
   const conciergeIn = spring({ frame: frame - 84, fps, config: { damping: 14 } });
-  const msg = "Hello! I'm your Accio Concierge. I can help you find suppliers, compare quotes, or lease the perfect storefront.";
+  const msg = "Hello! I'm your GrahmOS Concierge. I can help you find suppliers, compare quotes, or lease the perfect storefront.";
   const typed = msg.slice(0, Math.max(0, Math.round(interpolate(frame, [100, 220], [0, msg.length], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }))));
   const fadeOut = interpolate(frame, [durationInFrames - 20, durationInFrames], [1, 0]);
 
@@ -128,7 +128,7 @@ export function MallHero() {
         }}
       >
         <div style={{ fontSize: 44, fontWeight: 700, letterSpacing: 1 }}>
-          Accio<span style={{ color: "#E5C963" }}>✦</span>
+          GrahmOS<span style={{ color: "#E5C963" }}>✦</span>
         </div>
         <div style={{ fontSize: 12, letterSpacing: 6, color: "#E5C963", fontFamily: "Inter, sans-serif", fontWeight: 600 }}>
           VIRTUAL MALL
@@ -214,7 +214,7 @@ export function MallHero() {
           }}
         >
           <div style={{ fontSize: 11, fontWeight: 700, color: "#5B21B6", marginBottom: 4 }}>
-            Accio Concierge <span style={{ color: "#34a065" }}>● Live</span>
+            GrahmOS Concierge <span style={{ color: "#34a065" }}>● Live</span>
           </div>
           <div style={{ fontSize: 13, color: "#171221", minHeight: 36, lineHeight: 1.45 }}>
             {typed}

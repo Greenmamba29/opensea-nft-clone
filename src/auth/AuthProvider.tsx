@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { AuthKitProvider, useAuth } from "@workos-inc/authkit-react";
 
 import {
-  AccioAuthContext,
+  GrahmOSAuthContext,
   AUTH_ENABLED,
   WORKOS_CLIENT_ID,
   deriveRole,
-  type AccioAuthValue,
-  type AccioRole,
-  type AccioUser,
+  type GrahmOSAuthValue,
+  type GrahmOSRole,
+  type GrahmOSUser,
 } from "./auth-context";
 import { setTokenGetter } from "@/lib/api";
 
@@ -29,8 +29,8 @@ function WorkOSBridge({ children }: { children: ReactNode }) {
     });
   }, [getAccessToken]);
 
-  const value = useMemo<AccioAuthValue>(() => {
-    const accioUser: AccioUser | null = user
+  const value = useMemo<GrahmOSAuthValue>(() => {
+    const grahmosUser: GrahmOSUser | null = user
       ? {
           id: user.id,
           email: user.email,
@@ -42,7 +42,7 @@ function WorkOSBridge({ children }: { children: ReactNode }) {
       : null;
 
     return {
-      user: accioUser,
+      user: grahmosUser,
       isLoading,
       demoMode: false,
       signIn: (opts) => signIn(opts),
@@ -58,30 +58,30 @@ function WorkOSBridge({ children }: { children: ReactNode }) {
     };
   }, [user, isLoading, signIn, signUp, signOut, getAccessToken]);
 
-  return <AccioAuthContext.Provider value={value}>{children}</AccioAuthContext.Provider>;
+  return <GrahmOSAuthContext.Provider value={value}>{children}</GrahmOSAuthContext.Provider>;
 }
 
 /* ── Demo fallback ───────────────────────────────────────────────────
    No WorkOS keys configured → simulate a session locally so the full
    product is explorable. Persists the chosen demo role in localStorage. */
-const DEMO_KEY = "accio.demo.user";
+const DEMO_KEY = "grahmos.demo.user";
 
-function readDemoUser(): AccioUser | null {
+function readDemoUser(): GrahmOSUser | null {
   try {
     const raw = localStorage.getItem(DEMO_KEY);
-    return raw ? (JSON.parse(raw) as AccioUser) : null;
+    return raw ? (JSON.parse(raw) as GrahmOSUser) : null;
   } catch {
     return null;
   }
 }
 
 function DemoProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AccioUser | null>(readDemoUser);
+  const [user, setUser] = useState<GrahmOSUser | null>(readDemoUser);
 
-  const login = useCallback((role: AccioRole) => {
-    const demo: AccioUser = {
+  const login = useCallback((role: GrahmOSRole) => {
+    const demo: GrahmOSUser = {
       id: "demo_" + role,
-      email: `demo+${role}@accio.market`,
+      email: `demo+${role}@grahmos.market`,
       firstName: "Sophia",
       lastName: "Carter",
       profilePictureUrl: null,
@@ -91,7 +91,7 @@ function DemoProvider({ children }: { children: ReactNode }) {
     setUser(demo);
   }, []);
 
-  const value = useMemo<AccioAuthValue>(
+  const value = useMemo<GrahmOSAuthValue>(
     () => ({
       user,
       isLoading: false,
@@ -108,7 +108,7 @@ function DemoProvider({ children }: { children: ReactNode }) {
     [user, login]
   );
 
-  return <AccioAuthContext.Provider value={value}>{children}</AccioAuthContext.Provider>;
+  return <GrahmOSAuthContext.Provider value={value}>{children}</GrahmOSAuthContext.Provider>;
 }
 
 export default function AuthProvider({ children }: { children: ReactNode }) {

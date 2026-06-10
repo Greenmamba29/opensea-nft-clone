@@ -64,7 +64,7 @@ export default function SettingsPage() {
                 <label className="text-sm font-bold uppercase tracking-wider text-[var(--os-text-secondary)]">Username</label>
                 <input 
                   type="text" 
-                  defaultValue="0xdeaf...fb8b"
+                  defaultValue="bny.buyer"
                   placeholder="Enter username" 
                   className="w-full bg-[var(--os-surface-2)] border border-[var(--os-border)] rounded-xl py-3 px-4 text-sm font-medium focus:outline-none focus:border-[var(--os-blue)] focus:ring-1 focus:ring-[var(--os-blue)] transition-all"
                 />

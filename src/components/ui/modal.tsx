@@ -31,7 +31,7 @@ export function Modal({
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-accio-ink/40 backdrop-blur-sm"
+        className="absolute inset-0 bg-grahmos-ink/40 backdrop-blur-sm"
         onClick={onClose}
         aria-hidden
       />

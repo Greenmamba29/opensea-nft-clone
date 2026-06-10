@@ -23,13 +23,18 @@ export default async (req: Request, _context: Context) => {
       return json({ error: "invalid_json" }, 400);
     }
     const items = body.items ?? [];
-    if (items.length === 0) return json({ error: "items required" }, 422);
+    const request = body.request;
+    // Accept either itemized quotes (legacy) or a free-form RFQ from /mall/quotes.
+    if (items.length === 0 && !(request?.description && request.quantity > 0)) {
+      return json({ error: "items or request required" }, 422);
+    }
     const total = items.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
     const created: Quote = {
       id: "q_" + Math.floor(1000 + Math.random() * 9000),
       buyer: body.buyer ?? user.email ?? "Unknown buyer",
       company: body.company ?? "—",
       items,
+      request,
       status: "submitted",
       total,
       createdAt: new Date().toISOString(),

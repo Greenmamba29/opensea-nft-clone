@@ -1,4 +1,4 @@
-# design.md — The Accio Design System
+# design.md — The GrahmOS Design System
 
 > The visual constitution. Two themes coexist; every new surface inherits one of them.
 > Source of truth: `src/styles/globals.css`, `tailwind.config.ts`, `src/components/ui/`.
@@ -9,15 +9,15 @@
 
 | Theme | Where | Class | Mood |
 |---|---|---|---|
-| **Accio (light)** | `/` landing, `/os` dashboard | `.accio-theme` | Premium retail — cream, royal purple, gold |
+| **GrahmOS (light)** | `/` landing, `/os` dashboard | `.grahmos-theme` | Premium retail — cream, royal purple, gold |
 | **OpenSea (dark)** | `/mall/*` shopping scaffold | (default `os.*`) | Onchain marketplace — near-black, electric blue |
 
-The Accio theme is the **brand**. The dark theme is preserved for the legacy mall
-shopping flow and will migrate to Accio light over time. Never mix the two on one screen.
+The GrahmOS theme is the **brand**. The dark theme is preserved for the legacy mall
+shopping flow and will migrate to GrahmOS light over time. Never mix the two on one screen.
 
 ## 2. Tokens (HSL CSS variables, shadcn-compatible)
 
-Defined under `.accio-theme` in `src/styles/globals.css`, surfaced to Tailwind via
+Defined under `.grahmos-theme` in `src/styles/globals.css`, surfaced to Tailwind via
 semantic color names in `tailwind.config.ts`.
 
 ```
@@ -33,7 +33,7 @@ never raw hex. Re-skinning is a token change, not a component edit.
 
 ## 3. Typography
 
-- **Display:** `Playfair Display` (serif) — headlines, the `Accio✦` wordmark. Editorial,
+- **Display:** `Playfair Display` (serif) — headlines, the `GrahmOS✦` wordmark. Editorial,
   premium. Loaded in `index.html`.
 - **Body/UI:** `Inter` — everything else.
 - Scale is Tailwind default; display headings use `font-display`.
@@ -43,7 +43,7 @@ never raw hex. Re-skinning is a token change, not a component edit.
 | Mechanism | Use | Source |
 |---|---|---|
 | **Remotion** | The hero "video" — storefront cards spring in, gold dust, concierge types | `src/remotion/MallHero.tsx` via `@remotion/player` |
-| **Scroll reveal** | Section fade-and-rise on enter | `src/components/accio/Reveal.tsx` (IntersectionObserver) |
+| **Scroll reveal** | Section fade-and-rise on enter | `src/components/grahmos/Reveal.tsx` (IntersectionObserver) |
 | **Tailwind keyframes** | `fade-up`, `float`, `shimmer` | `tailwind.config.ts` |
 | **Micro** | Hover lifts, transitions | utility classes |
 
@@ -69,15 +69,15 @@ add it here, themed — never inline a one-off.
 
 ## 6. Layout grammar
 
-- **Landing** (`src/pages/accio/LandingPage.tsx`): max-w-7xl, generous vertical rhythm,
+- **Landing** (`src/pages/grahmos/LandingPage.tsx`): max-w-7xl, generous vertical rhythm,
   alternating full-bleed bands, sticky translucent nav.
-- **Dashboard** (`src/pages/accio/MallOSPage.tsx`): fixed dark sidebar + content grid;
+- **Dashboard** (`src/pages/grahmos/MallOSPage.tsx`): fixed dark sidebar + content grid;
   KPI row → charts row → tables row → zoning map. recharts for all data viz.
 - **Mall** (`src/components/Layout.tsx`): hover-expand icon rail + header + content.
 
 ## 7. The concierge surface
 
-`src/components/accio/Concierge.tsx` — a floating launcher present on landing + mall.
+`src/components/grahmos/Concierge.tsx` — a floating launcher present on landing + mall.
 It is the *visible* soul of the white-glove layer. Design constraints: minimal,
 non-intrusive, brand-gradient header, suggested-prompt chips, typing indicator,
 never blocks the page. See `agents.md` for its brain.
@@ -90,7 +90,7 @@ never blocks the page. See `agents.md` for its brain.
 
 ## 9. Extension checklist (read before adding any UI)
 
-1. Which theme? (Accio light unless it's inside `/mall`.)
+1. Which theme? (GrahmOS light unless it's inside `/mall`.)
 2. Does a `ui/` primitive exist? Reuse it. If not, add it *there*, themed.
 3. Semantic tokens only — no raw hex.
 4. Role-gate anything beyond consumer scope.

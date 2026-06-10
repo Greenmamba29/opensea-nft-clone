@@ -13,7 +13,7 @@ export default function SupportPage() {
           {[
             { icon: "📖", title: "Help Center", desc: "Browse articles and guides" },
             { icon: "💬", title: "Contact Us", desc: "Submit a support request" },
-            { icon: "🐛", title: "Report a Bug", desc: "Help us improve OpenSea" },
+            { icon: "🐛", title: "Report a Bug", desc: "Help us improve the mall" },
             { icon: "💡", title: "Feature Request", desc: "Suggest new features" },
           ].map((item) => (
             <button

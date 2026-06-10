@@ -17,40 +17,40 @@ export default function RewardsPage() {
         </div>
         
         <h1 className="text-6xl font-black mb-8 tracking-tighter bg-gradient-to-br from-white via-white to-gray-500 bg-clip-text text-transparent">
-          Embark on Voyages
+          GrahmOS Rewards
         </h1>
-        
+
         <p className="text-xl text-[var(--os-text-secondary)] font-bold mb-12 max-w-2xl leading-relaxed">
-          Earn as you collect, trade, engage, and explore the vast NFT landscape with OpenSea's new rewards program.
+          Earn points every time you shop, source, and explore the mall — and spend them at any storefront.
         </p>
-        
-        <button className="px-12 py-5 bg-[var(--os-blue)] text-white rounded-2xl font-black text-2xl hover:bg-blue-600 shadow-2xl shadow-blue-500/40 hover:-translate-y-1 transition-all">
-          Game On
+
+        <button className="px-12 py-5 bg-[var(--os-blue)] text-white rounded-2xl font-black text-2xl hover:brightness-110 shadow-2xl shadow-purple-500/40 hover:-translate-y-1 transition-all">
+          Start Earning
         </button>
 
         <div className="mt-24 grid grid-cols-1 md:grid-cols-4 gap-8 w-full">
           <div className="bg-[var(--os-surface-2)]/50 backdrop-blur-md p-8 rounded-3xl border border-[var(--os-border)] hover:border-[var(--os-blue)]/50 transition-all group">
             <div className="text-4xl mb-6 group-hover:scale-110 transition-transform">✨</div>
-            <h3 className="font-black mb-2 uppercase tracking-widest text-xs">Complete Voyages</h3>
-            <p className="text-sm text-[var(--os-text-secondary)] font-bold">Earn XP for every step of your journey.</p>
+            <h3 className="font-black mb-2 uppercase tracking-widest text-xs">Shop the Aisles</h3>
+            <p className="text-sm text-[var(--os-text-secondary)] font-bold">Earn points on every order, in every aisle.</p>
           </div>
 
           <div className="bg-[var(--os-surface-2)]/50 backdrop-blur-md p-8 rounded-3xl border border-[var(--os-border)] hover:border-yellow-500/50 transition-all group">
             <div className="text-4xl mb-6 group-hover:scale-110 transition-transform">🏆</div>
-            <h3 className="font-black mb-2 uppercase tracking-widest text-xs">Discover Treasures</h3>
-            <p className="text-sm text-[var(--os-text-secondary)] font-bold">Uncover rare items and exclusive perks.</p>
+            <h3 className="font-black mb-2 uppercase tracking-widest text-xs">Unlock Perks</h3>
+            <p className="text-sm text-[var(--os-text-secondary)] font-bold">Member pricing and early access at top stores.</p>
           </div>
 
           <div className="bg-[var(--os-surface-2)]/50 backdrop-blur-md p-8 rounded-3xl border border-[var(--os-border)] hover:border-purple-500/50 transition-all group">
             <div className="text-4xl mb-6 group-hover:scale-110 transition-transform">📦</div>
-            <h3 className="font-black mb-2 uppercase tracking-widest text-xs">Earn Shipments</h3>
-            <p className="text-sm text-[var(--os-text-secondary)] font-bold">Receive rewards directly to your wallet.</p>
+            <h3 className="font-black mb-2 uppercase tracking-widest text-xs">Free Deliveries</h3>
+            <p className="text-sm text-[var(--os-text-secondary)] font-bold">Redeem points for shipping on any order.</p>
           </div>
 
           <div className="bg-[var(--os-surface-2)]/50 backdrop-blur-md p-8 rounded-3xl border border-[var(--os-border)] hover:border-[var(--os-green)]/50 transition-all group">
             <div className="text-4xl mb-6 group-hover:scale-110 transition-transform">🛡️</div>
-            <h3 className="font-black mb-2 uppercase tracking-widest text-xs">Integrity</h3>
-            <p className="text-sm text-[var(--os-text-secondary)] font-bold">Safe, secure, and transparent rewards.</p>
+            <h3 className="font-black mb-2 uppercase tracking-widest text-xs">White-Glove Care</h3>
+            <p className="text-sm text-[var(--os-text-secondary)] font-bold">Top members get a dedicated GrahmOS agent.</p>
           </div>
         </div>
       </div>

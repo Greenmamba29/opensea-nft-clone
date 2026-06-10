@@ -1,6 +1,6 @@
 # ARCHITECTURE.md — Component Breakdown
 
-> A full, component-isolated breakdown of the Accio build. Each component is documented
+> A full, component-isolated breakdown of the GrahmOS build. Each component is documented
 > as: **Responsibility · Interface · Dependencies · Invariants · Extension points.**
 > The goal: any change is local, predictable, and fast — you touch one box, not the graph.
 
@@ -26,7 +26,7 @@
                     └────────────────────────────────────────────┘
                                    ▲
         ┌──────────────────────────┼──────────────────────────┐
-        │  src/pages, src/components/accio  (feature surfaces) │
+        │  src/pages, src/components/grahmos  (feature surfaces) │
         └──────────────────────────┼──────────────────────────┘
                                    ▼  src/lib/api.ts (typed client)
         ┌──────────────────────────────────────────────────────┐
@@ -55,14 +55,14 @@ The only component allowed to know *who* the user is.
 
 | File | Responsibility |
 |---|---|
-| `auth-context.ts` | Types (`AccioUser`, `AccioRole`), `useAccioAuth()` hook, `deriveRole()`, the `AUTH_ENABLED` flag. The contract. |
+| `auth-context.ts` | Types (`GrahmOSUser`, `GrahmOSRole`), `useGrahmOSAuth()` hook, `deriveRole()`, the `AUTH_ENABLED` flag. The contract. |
 | `AuthProvider.tsx` | Two implementations behind one context: **WorkOSBridge** (real AuthKit) and **DemoProvider** (localStorage). Picks by `VITE_WORKOS_CLIENT_ID`. Wires the API token getter. |
 | `ProtectedRoute.tsx` | Gate by auth + role; renders an inline sign-in prompt, never a hard redirect. |
 
-- **Interface (out):** `useAccioAuth() → { user, isLoading, demoMode, signIn, signUp, signOut, getAccessToken }`.
-- **Invariants:** The rest of the app **never** imports `@workos-inc/*` — only `useAccioAuth`.
+- **Interface (out):** `useGrahmOSAuth() → { user, isLoading, demoMode, signIn, signUp, signOut, getAccessToken }`.
+- **Invariants:** The rest of the app **never** imports `@workos-inc/*` — only `useGrahmOSAuth`.
   Swapping auth providers touches *only* this folder. Demo mode is always available.
-- **Extension:** new role → extend `AccioRole` + `deriveRole`; new gate → `roles={[...]}`.
+- **Extension:** new role → extend `GrahmOSRole` + `deriveRole`; new gate → `roles={[...]}`.
 
 ## 3. Typed API client — `src/lib/api.ts`
 
@@ -84,17 +84,17 @@ The only component allowed to know *who* the user is.
 
 ## 5. Feature surfaces
 
-### 5a. Landing — `src/pages/accio/LandingPage.tsx`
+### 5a. Landing — `src/pages/grahmos/LandingPage.tsx`
 - **Responsibility:** Conversion. The marketing site + plan selection + concierge entry.
-- **Dependencies:** `ui/`, `MallHero` (Remotion), `Reveal`, `Concierge`, `useAccioAuth`.
-- **Invariants:** Accio light theme; all sections inherit `ui/`; auth-aware CTAs.
+- **Dependencies:** `ui/`, `MallHero` (Remotion), `Reveal`, `Concierge`, `useGrahmOSAuth`.
+- **Invariants:** GrahmOS light theme; all sections inherit `ui/`; auth-aware CTAs.
 
-### 5b. Mall OS — `src/pages/accio/MallOSPage.tsx`
+### 5b. Mall OS — `src/pages/grahmos/MallOSPage.tsx`
 - **Responsibility:** Operator console — KPIs, charts, tenant queue, agent queue, zoning.
-- **Dependencies:** `ui/`, recharts, `useAccioAuth`; (will read `/api/mall/overview`).
+- **Dependencies:** `ui/`, recharts, `useGrahmOSAuth`; (will read `/api/mall/overview`).
 - **Invariants:** Role-gated (`operator`/`agent`); recharts for all viz; one grid grammar.
 
-### 5c. Concierge — `src/components/accio/Concierge.tsx`
+### 5c. Concierge — `src/components/grahmos/Concierge.tsx`
 - **Responsibility:** The visible white-glove agent. Chat UI + suggested prompts.
 - **Interface:** `<Concierge surface="landing|mall" />`. Calls `askConcierge()`.
 - **Invariants:** Non-intrusive, floating, never blocks; degrades to a helpful message on
@@ -104,9 +104,9 @@ The only component allowed to know *who* the user is.
 - **Responsibility:** The hero composition (Remotion) and scroll-reveal primitive.
 - **Invariants:** Self-contained; motion is meaningful (a storefront demo), not noise.
 
-### 5e. Legacy mall — `src/pages/*` (non-accio) + `src/components/Layout.tsx`
+### 5e. Legacy mall — `src/pages/*` (non-grahmos) + `src/components/Layout.tsx`
 - **Responsibility:** The shopping scaffold under `/mall/*`. Dark theme. Mounts Concierge.
-- **Invariants:** Isolated under the `/mall` prefix; will migrate to Accio light over time.
+- **Invariants:** Isolated under the `/mall` prefix; will migrate to GrahmOS light over time.
 
 ## 6. API layer — `netlify/functions/`
 

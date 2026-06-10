@@ -1,163 +1,190 @@
-import React, { useState } from 'react';
-import { nftItems, chains, collections } from '@/data/mock';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import {
+  AISLES,
+  MALL_ORDERS,
+  MALL_STOREFRONTS,
+  ORDER_STATUS_STYLES,
+  SAMPLE_QUOTES,
+  QUOTE_STATUS_LABELS,
+  QUOTE_STATUS_STYLES,
+  aisleBySlug,
+} from '@/lib/mallData';
 
+// Buyer Dashboard — "What am I buying, sourcing, tracking, or saving?"
 export default function ProfilePage() {
-  const [activeTab, setActiveTab] = useState('nfts');
-  const [activeStatus, setActiveStatus] = useState('All');
-
-  const tabs = [
-    "Galleries", "NFTs", "Tokens", "Listings", "Offers", 
-    "Portfolio", "Created", "Watchlist", "Favorites", "Activity"
-  ];
+  const activeOrders = MALL_ORDERS.filter((o) => o.status === 'processing' || o.status === 'shipped');
+  const savedStores = MALL_STOREFRONTS.slice(0, 4);
+  const recommendedAisles = AISLES.slice(0, 4);
 
   return (
     <div className="flex flex-col min-h-screen bg-[var(--os-bg)] text-[var(--os-text)]">
       {/* Banner */}
-      <div className="h-48 bg-gradient-to-r from-[var(--os-blue)] via-purple-600 to-[var(--os-red)] w-full"></div>
+      <div className="h-32 bg-gradient-to-r from-[var(--os-blue)] via-purple-800 to-[var(--os-gold)] w-full" />
 
-      <div className="px-8 -mt-16 relative z-10 flex flex-col md:flex-row items-end md:items-start justify-between pb-8 border-b border-[var(--os-border)]">
-        <div className="flex flex-col md:flex-row items-end md:items-start space-x-0 md:space-x-8">
-          <div className="w-32 h-32 rounded-3xl border-4 border-[var(--os-bg)] bg-[var(--os-surface-2)] shadow-xl overflow-hidden flex items-center justify-center text-4xl">
+      <div className="px-8 -mt-12 relative z-10 flex flex-col md:flex-row md:items-end justify-between pb-8 border-b border-[var(--os-border)] gap-6">
+        <div className="flex items-end gap-6">
+          <div className="w-24 h-24 rounded-3xl border-4 border-[var(--os-bg)] bg-[var(--os-surface-2)] shadow-xl flex items-center justify-center text-4xl">
             👤
           </div>
-          <div className="mt-4 md:mt-20 flex flex-col items-center md:items-start">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-2xl font-black tracking-tight">0xdeaf...fb8b</h1>
-              <div className="flex items-center space-x-1.5">
-                <button className="p-1.5 hover:bg-[var(--os-surface-2)] rounded-lg text-[var(--os-text-secondary)] transition-colors">✎</button>
-                <button className="p-1.5 hover:bg-[var(--os-surface-2)] rounded-lg text-[var(--os-text-secondary)] transition-colors">📄</button>
-                <button className="p-1.5 hover:bg-[var(--os-surface-2)] rounded-lg text-[var(--os-text-secondary)] transition-colors">⋮</button>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-4 justify-center md:justify-start">
-              <span className="px-3 py-1 bg-[var(--os-surface-2)] text-[var(--os-text-secondary)] text-[10px] font-bold uppercase tracking-widest rounded-full border border-[var(--os-border)]">JOINED JUN 2023</span>
-              <span className="px-3 py-1 bg-[var(--os-surface-2)] text-[var(--os-text-secondary)] text-[10px] font-bold uppercase tracking-widest rounded-full border border-[var(--os-border)]">DEAF7A</span>
-              <span className="px-3 py-1 bg-[var(--os-blue)]/10 text-[var(--os-blue)] text-[10px] font-bold uppercase tracking-widest rounded-full border border-[var(--os-blue)]/20">0 XP</span>
-            </div>
+          <div className="pb-1">
+            <h1 className="text-2xl font-black tracking-tight">Your Buyer Dashboard</h1>
+            <p className="text-sm text-[var(--os-text-secondary)] font-medium">
+              Everything you're buying, sourcing, tracking, or saving — in one place.
+            </p>
           </div>
         </div>
-
-        <div className="mt-8 md:mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 bg-[var(--os-surface-2)] p-6 rounded-2xl border border-[var(--os-border)]">
-          <div>
-            <div className="text-[var(--os-text-tertiary)] text-[10px] font-bold uppercase mb-1">Portfolio Value</div>
-            <div className="text-lg font-black">0.45 ETH</div>
-          </div>
-          <div>
-            <div className="text-[var(--os-text-tertiary)] text-[10px] font-bold uppercase mb-1">USD Value</div>
-            <div className="text-lg font-black text-[var(--os-text-secondary)]">$1.2K</div>
-          </div>
-          <div>
-            <div className="text-[var(--os-text-tertiary)] text-[10px] font-bold uppercase mb-1">NFTs</div>
-            <div className="text-lg font-black text-[var(--os-green)]">42%</div>
-          </div>
-          <div>
-            <div className="text-[var(--os-text-tertiary)] text-[10px] font-bold uppercase mb-1">Tokens</div>
-            <div className="text-lg font-black text-[var(--os-blue)]">58%</div>
-          </div>
+        <div className="flex gap-3 pb-1">
+          <Link to="/mall/quotes" className="px-5 py-2.5 bg-[var(--os-blue)] text-white rounded-xl font-bold text-sm hover:brightness-110 transition-all">
+            New quote request
+          </Link>
+          <Link to="/mall/products" className="px-5 py-2.5 border border-[var(--os-border)] rounded-xl font-bold text-sm hover:bg-[var(--os-surface-2)] transition-all">
+            Browse products
+          </Link>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="px-8 border-b border-[var(--os-border)] overflow-x-auto no-scrollbar flex items-center space-x-1">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(tab.toLowerCase())}
-            className={`px-4 py-6 text-sm font-bold whitespace-nowrap transition-all border-b-2 ${activeTab === tab.toLowerCase() ? 'border-[var(--os-text)] text-[var(--os-text)]' : 'border-transparent text-[var(--os-text-secondary)] hover:text-[var(--os-text)]'}`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
-        <div className="w-72 border-r border-[var(--os-border)] overflow-y-auto p-6 hidden lg:block">
-          <div className="mb-8">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--os-text-secondary)] mb-4">Status</h3>
-            <div className="space-y-1">
-              {['All', 'Listed', 'Not Listed', 'Hidden'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setActiveStatus(status)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${activeStatus === status ? 'bg-[var(--os-surface-2)] font-semibold' : 'text-[var(--os-text-secondary)] hover:bg-[var(--os-surface-2)] hover:text-[var(--os-text)]'}`}
-                >
-                  {status}
-                </button>
+      <div className="flex-1 p-8 max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Active Orders */}
+        <DashboardCard title="Active Orders" linkLabel="All orders" linkTo="/mall/orders" className="lg:col-span-2">
+          {activeOrders.length === 0 ? (
+            <EmptyHint text="No active orders — browse the aisles to get started." />
+          ) : (
+            <div className="space-y-3">
+              {activeOrders.map((order) => (
+                <div key={order.id} className="flex items-center justify-between gap-4 bg-[var(--os-surface-2)] rounded-xl p-4">
+                  <div className="min-w-0">
+                    <div className="font-bold text-sm truncate">{order.summary}</div>
+                    <div className="text-xs text-[var(--os-text-secondary)] font-medium">{order.storefront} · {order.date}</div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="font-black text-sm">${order.total.toLocaleString()}</span>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${ORDER_STATUS_STYLES[order.status]}`}>
+                      {order.status}
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
+          )}
+        </DashboardCard>
 
-          <div className="border-t border-[var(--os-border)] py-4 flex justify-between items-center cursor-pointer hover:text-[var(--os-blue)] transition-colors">
-            <span className="font-semibold">Chains</span>
-            <span>⌄</span>
-          </div>
-          
-          <div className="border-t border-[var(--os-border)] py-4 flex justify-between items-center cursor-pointer hover:text-[var(--os-blue)] transition-colors">
-            <span className="font-semibold">Collections</span>
-            <span>⌄</span>
-          </div>
-        </div>
-
-        {/* NFT Grid Content */}
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="flex items-center justify-between mb-8 space-x-4">
-            <div className="relative flex-1 max-w-lg">
-              <input 
-                type="text" 
-                placeholder="Search by name" 
-                className="w-full bg-[var(--os-surface-2)] border border-[var(--os-border)] rounded-xl py-2 px-4 pl-10 text-sm focus:outline-none focus:border-[var(--os-blue)]"
-              />
-              <span className="absolute left-4 top-2 text-[var(--os-text-tertiary)]">🔍</span>
+        {/* GrahmOS Rewards */}
+        <DashboardCard title="GrahmOS Rewards" linkLabel="Rewards" linkTo="/mall/rewards">
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="w-16 h-16 rounded-full bg-[var(--os-gold)]/15 border border-[var(--os-gold)]/30 flex items-center justify-center text-3xl mb-4">
+              ⚡
             </div>
-            
-            <div className="flex items-center space-x-4">
-              <select className="bg-[var(--os-surface-2)] border border-[var(--os-border)] rounded-xl py-2 px-4 text-sm font-semibold outline-none">
-                <option>Recently received</option>
-                <option>Price: low to high</option>
-                <option>Price: high to low</option>
-                <option>Recently listed</option>
-              </select>
-              
-              <div className="flex items-center space-x-1 bg-[var(--os-surface-2)] border border-[var(--os-border)] rounded-xl p-1">
-                <button className="p-1.5 bg-[var(--os-surface-3)] rounded-lg text-sm shadow-sm">⊞</button>
-                <button className="p-1.5 hover:bg-[var(--os-surface-3)] rounded-lg text-sm text-[var(--os-text-secondary)]">▦</button>
-              </div>
-            </div>
+            <div className="text-3xl font-black mb-1">1,240 <span className="text-sm font-bold text-[var(--os-text-secondary)]">pts</span></div>
+            <p className="text-xs text-[var(--os-text-secondary)] font-medium">
+              120 points earned on your last order. Redeem against any storefront.
+            </p>
           </div>
+        </DashboardCard>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-            {nftItems.map((nft) => (
-              <div key={nft.id} className="group bg-[var(--os-surface-2)] rounded-2xl overflow-hidden border border-[var(--os-border)] hover:border-[var(--os-border-light)] transition-all cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1">
-                <div className="aspect-square relative bg-[var(--os-surface-3)] flex items-center justify-center text-6xl">
-                  {nft.image}
-                  <div className="absolute top-3 left-3 w-8 h-8 bg-black/40 backdrop-blur-md rounded-lg flex items-center justify-center text-xs">
-                    ◆
-                  </div>
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors"></div>
-                </div>
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[var(--os-text-secondary)] text-[10px] font-bold uppercase truncate max-w-[70%]">Pudgy Penguins</span>
-                    <span className="text-[var(--os-text-tertiary)] text-[10px] font-bold">#{nft.rarity}</span>
-                  </div>
-                  <div className="font-bold text-sm mb-3 truncate">{nft.name}</div>
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <div className="text-[var(--os-text-tertiary)] text-[10px] font-bold uppercase">Price</div>
-                      <div className="font-black text-sm">{nft.price}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[var(--os-text-tertiary)] text-[10px] font-bold uppercase">Last Sale</div>
-                      <div className="font-black text-xs text-[var(--os-text-secondary)]">{nft.lastSale}</div>
-                    </div>
+        {/* Quote Requests */}
+        <DashboardCard title="Quote Requests" linkLabel="All quotes" linkTo="/mall/quotes" className="lg:col-span-2">
+          <div className="space-y-3">
+            {SAMPLE_QUOTES.map((quote) => (
+              <div key={quote.id} className="flex items-center justify-between gap-4 bg-[var(--os-surface-2)] rounded-xl p-4">
+                <div className="min-w-0">
+                  <div className="font-bold text-sm truncate">{quote.description}</div>
+                  <div className="text-xs text-[var(--os-text-secondary)] font-medium">
+                    {quote.quantity.toLocaleString()} {quote.unit} · {quote.createdAt}
                   </div>
                 </div>
+                <span className={`shrink-0 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border ${QUOTE_STATUS_STYLES[quote.status]}`}>
+                  {QUOTE_STATUS_LABELS[quote.status]}
+                </span>
               </div>
             ))}
           </div>
-        </div>
+        </DashboardCard>
+
+        {/* Concierge History (placeholder) */}
+        <DashboardCard title="Concierge History">
+          <div className="flex flex-col items-center justify-center py-6 text-center">
+            <div className="text-3xl mb-3">✦</div>
+            <p className="text-sm text-[var(--os-text-secondary)] font-medium mb-4">
+              Your conversations with GrahmOS will appear here.
+            </p>
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('grahmos:open-concierge'))}
+              className="px-5 py-2.5 bg-[var(--os-blue)] text-white rounded-xl font-bold text-sm hover:brightness-110 transition-all"
+            >
+              Ask GrahmOS
+            </button>
+          </div>
+        </DashboardCard>
+
+        {/* Saved Storefronts */}
+        <DashboardCard title="Saved Storefronts" linkLabel="Directory" linkTo="/mall/stores" className="lg:col-span-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {savedStores.map((store) => (
+              <Link
+                key={store.id}
+                to="/mall/collection"
+                className="group bg-[var(--os-surface-2)] rounded-xl p-4 hover:bg-[var(--os-surface-3)] transition-colors text-center"
+              >
+                <div className="text-3xl mb-2">{store.icon}</div>
+                <div className="font-bold text-xs truncate group-hover:text-[var(--os-blue)] transition-colors">{store.merchant}</div>
+                <div className="text-[10px] text-[var(--os-text-tertiary)] font-bold uppercase tracking-wider mt-1">
+                  From {store.fromPrice}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </DashboardCard>
+
+        {/* Recommended Aisles */}
+        <DashboardCard title="Recommended Aisles" linkLabel="All aisles" linkTo="/mall/aisles">
+          <div className="space-y-2">
+            {recommendedAisles.map((aisle) => (
+              <Link
+                key={aisle.slug}
+                to={`/mall/aisles/${aisle.slug}`}
+                className="flex items-center gap-3 bg-[var(--os-surface-2)] rounded-xl px-4 py-3 hover:bg-[var(--os-surface-3)] transition-colors"
+              >
+                <span className="text-xl">{aisle.icon}</span>
+                <span className="font-bold text-sm">{aisle.name}</span>
+                <span className="ml-auto text-[var(--os-text-tertiary)]">→</span>
+              </Link>
+            ))}
+          </div>
+        </DashboardCard>
       </div>
     </div>
   );
+}
+
+function DashboardCard({
+  title,
+  children,
+  linkLabel,
+  linkTo,
+  className = '',
+}: {
+  title: string;
+  children: React.ReactNode;
+  linkLabel?: string;
+  linkTo?: string;
+  className?: string;
+}) {
+  return (
+    <section className={`bg-[var(--os-surface)] border border-[var(--os-border)] rounded-2xl p-6 ${className}`}>
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="font-black text-lg">{title}</h2>
+        {linkLabel && linkTo && (
+          <Link to={linkTo} className="text-xs font-bold text-[var(--os-blue)] hover:underline">
+            {linkLabel} →
+          </Link>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function EmptyHint({ text }: { text: string }) {
+  return <p className="text-sm text-[var(--os-text-secondary)] font-medium py-6 text-center">{text}</p>;
 }
