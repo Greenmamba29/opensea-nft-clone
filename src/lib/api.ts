@@ -43,3 +43,80 @@ export function askConcierge(
     body: JSON.stringify({ messages, surface }),
   });
 }
+
+/* ── Mall OS dashboard ─────────────────────────────────────────────── */
+
+export interface MallOverview {
+  kpis: { key: string; label: string; value: string; delta: string }[];
+  occupancy: {
+    totalSlots: number;
+    occupied: number;
+    vacant: number;
+    pending: number;
+    rate: number;
+    slices: { name: string; value: number; color: string }[];
+  };
+  trends: { m: string; revenue: number; gmv: number }[];
+  categories: { icon: string; name: string; gmv: string; share: string; delta: string }[];
+  placements: { key: string; name: string; note: string; count: string }[];
+  agentQueue: { key: string; name: string; note: string; count: number }[];
+  agentQueueTotal: number;
+  zones: { name: string; slots: number; color: string }[];
+}
+
+export function getMallOverview(): Promise<{ overview: MallOverview; generatedAt: string; demo?: boolean }> {
+  return api("/api/mall/overview");
+}
+
+/* ── Storefronts ───────────────────────────────────────────────────── */
+
+export interface Storefront {
+  id: string;
+  merchant: string;
+  storeType: "Retail Store" | "Brand Store" | "B2B Store" | "Pop-Up";
+  category: string;
+  tier: "rent" | "lease" | "own";
+  status: "new" | "under_review" | "documents_pending" | "shortlisted" | "active";
+  assignedAgent: string;
+  monthlyLease: number;
+}
+
+export function listStorefronts(): Promise<{ storefronts: Storefront[] }> {
+  return api("/api/storefronts");
+}
+
+export interface StorefrontApplication {
+  merchant: string;
+  category: string;
+  storeType?: Storefront["storeType"];
+  tier?: Storefront["tier"];
+  contactEmail?: string;
+  notes?: string;
+}
+
+export function submitStorefront(
+  payload: StorefrontApplication
+): Promise<{ storefront: Storefront; message: string }> {
+  return api("/api/storefronts", { method: "POST", body: JSON.stringify(payload) });
+}
+
+/* ── Quotes ────────────────────────────────────────────────────────── */
+
+export interface QuoteItem {
+  sku: string;
+  name: string;
+  qty: number;
+  unitPrice: number;
+}
+
+export interface QuoteDraft {
+  buyer?: string;
+  company?: string;
+  items: QuoteItem[];
+}
+
+export function submitQuote(
+  payload: QuoteDraft
+): Promise<{ quote: { id: string; total: number; status: string }; message: string }> {
+  return api("/api/quotes", { method: "POST", body: JSON.stringify(payload) });
+}

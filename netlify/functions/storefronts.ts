@@ -1,17 +1,18 @@
 import type { Config, Context } from "@netlify/functions";
 
-import { authenticate, json, unauthorized } from "./_auth";
+import { authenticate, requireRole, json, unauthorized } from "./_auth";
 import { STOREFRONTS, type Storefront } from "./_data";
 
 /**
- * GET  /api/storefronts            → list storefronts (operator/agent see all)
- * POST /api/storefronts            → submit a storefront application (any authed user)
+ * GET  /api/storefronts   → list storefronts (operator/agent only)
+ * POST /api/storefronts   → submit a storefront application (PUBLIC lead form)
  */
 export default async (req: Request, _context: Context) => {
   const user = await authenticate(req);
-  if (!user) return unauthorized();
 
   if (req.method === "GET") {
+    // Listing all tenants is operator/agent only.
+    if (!requireRole(user, ["operator", "agent"])) return unauthorized();
     return json({ storefronts: STOREFRONTS });
   }
 
@@ -36,7 +37,9 @@ export default async (req: Request, _context: Context) => {
       monthlyLease: body.monthlyLease ?? 59,
     };
     // In production: INSERT into Postgres storefronts + mirror to Airtable +
-    // create an Agent Task for white-glove onboarding.
+    // create an Agent Task for white-glove onboarding. (Public endpoint — add
+    // rate limiting / captcha before launch.)
+    void user; // applicant may be anonymous; captured if signed in
     return json({ storefront: created, message: "Application received. An Accio agent will reach out." }, 201);
   }
 

@@ -3,11 +3,24 @@
 // mirror to Airtable for staff workflows. Centralized here so the API surface
 // is real and typed while the persistence layer is wired up.
 
+// Display-ready shape — the single source of truth the Mall OS dashboard renders.
+// `iconKey`/`color` are presentation hints the client maps to lucide icons / fills.
 export interface MallOverview {
-  kpis: { label: string; value: string; delta: string }[];
-  occupancy: { totalSlots: number; occupied: number; vacant: number; pending: number; rate: number };
-  categories: { name: string; gmv: number; sharePct: number; deltaPct: number }[];
-  agentQueue: { name: string; count: number }[];
+  kpis: { key: string; label: string; value: string; delta: string }[];
+  occupancy: {
+    totalSlots: number;
+    occupied: number;
+    vacant: number;
+    pending: number;
+    rate: number;
+    slices: { name: string; value: number; color: string }[];
+  };
+  trends: { m: string; revenue: number; gmv: number }[];
+  categories: { icon: string; name: string; gmv: string; share: string; delta: string }[];
+  placements: { key: string; name: string; note: string; count: string }[];
+  agentQueue: { key: string; name: string; note: string; count: number }[];
+  agentQueueTotal: number;
+  zones: { name: string; slots: number; color: string }[];
 }
 
 export interface Storefront {
@@ -41,26 +54,66 @@ export interface Quote {
 
 export const MALL_OVERVIEW: MallOverview = {
   kpis: [
-    { label: "Active Storefronts", value: "428", delta: "+12" },
-    { label: "Occupancy Rate", value: "87.3%", delta: "+4.6pp" },
-    { label: "Monthly Lease Revenue", value: "$1.28M", delta: "+18.6%" },
-    { label: "GMV (This Month)", value: "$24.63M", delta: "+21.3%" },
-    { label: "Quote Requests", value: "156", delta: "+9" },
-    { label: "Agent-Assisted Sales", value: "$6.74M", delta: "+24.7%" },
+    { key: "storefronts", label: "Active Storefronts", value: "428", delta: "↑ 12 vs last month" },
+    { key: "occupancy", label: "Occupancy Rate", value: "87.3%", delta: "↑ 4.6pp vs last month" },
+    { key: "lease", label: "Monthly Lease Revenue", value: "$1.28M", delta: "↑ 18.6% vs last month" },
+    { key: "gmv", label: "GMV (This Month)", value: "$24.63M", delta: "↑ 21.3% vs last month" },
+    { key: "quotes", label: "Quote Requests", value: "156", delta: "↑ 9 vs last month" },
+    { key: "agent", label: "Agent-Assisted Sales", value: "$6.74M", delta: "↑ 24.7% vs last month" },
   ],
-  occupancy: { totalSlots: 600, occupied: 428, vacant: 102, pending: 70, rate: 87.3 },
+  occupancy: {
+    totalSlots: 600,
+    occupied: 428,
+    vacant: 102,
+    pending: 70,
+    rate: 87.3,
+    slices: [
+      { name: "Occupied", value: 428, color: "#5B21B6" },
+      { name: "Vacant", value: 102, color: "#D8CFEA" },
+      { name: "Pending Applications", value: 70, color: "#E5C963" },
+    ],
+  },
+  trends: [
+    { m: "May", revenue: 0.62, gmv: 11.2 },
+    { m: "Jun", revenue: 0.68, gmv: 12.8 },
+    { m: "Jul", revenue: 0.66, gmv: 14.1 },
+    { m: "Aug", revenue: 0.75, gmv: 15.6 },
+    { m: "Sep", revenue: 0.82, gmv: 17.2 },
+    { m: "Oct", revenue: 0.88, gmv: 16.4 },
+    { m: "Nov", revenue: 0.95, gmv: 19.8 },
+    { m: "Dec", revenue: 1.05, gmv: 23.5 },
+    { m: "Jan", revenue: 0.98, gmv: 20.1 },
+    { m: "Feb", revenue: 1.08, gmv: 21.9 },
+    { m: "Mar", revenue: 1.16, gmv: 23.2 },
+    { m: "Apr", revenue: 1.28, gmv: 24.6 },
+  ],
   categories: [
-    { name: "Food & Beverage", gmv: 7_820_000, sharePct: 31.8, deltaPct: 18.2 },
-    { name: "Office Supplies", gmv: 5_430_000, sharePct: 22.1, deltaPct: 16.7 },
-    { name: "Corporate Gifting", gmv: 4_210_000, sharePct: 17.1, deltaPct: 22.9 },
-    { name: "Local Makers", gmv: 3_110_000, sharePct: 12.6, deltaPct: 19.4 },
-    { name: "B2B Sourcing", gmv: 4_060_000, sharePct: 16.5, deltaPct: 24.1 },
+    { icon: "🍱", name: "Food & Beverage", gmv: "$7.82M", share: "31.8%", delta: "↑ 18.2%" },
+    { icon: "🖇️", name: "Office Supplies", gmv: "$5.43M", share: "22.1%", delta: "↑ 16.7%" },
+    { icon: "🎁", name: "Corporate Gifting", gmv: "$4.21M", share: "17.1%", delta: "↑ 22.9%" },
+    { icon: "🧶", name: "Local Makers", gmv: "$3.11M", share: "12.6%", delta: "↑ 19.4%" },
+    { icon: "📦", name: "B2B Sourcing", gmv: "$4.06M", share: "16.5%", delta: "↑ 24.1%" },
+  ],
+  placements: [
+    { key: "hero", name: "Homepage Hero Slots", note: "8 available", count: "2 / 10" },
+    { key: "aisle", name: "Premium Aisle Placements", note: "12 available", count: "18 / 30" },
+    { key: "crown", name: "Premium Row (Top Shelf)", note: "6 available", count: "6 / 12" },
+    { key: "popup", name: "Seasonal Pop-Up Spaces", note: "9 available", count: "4 / 15" },
   ],
   agentQueue: [
-    { name: "Sourcing Requests", count: 14 },
-    { name: "Quote Reviews", count: 8 },
-    { name: "Merchant Onboarding", count: 5 },
-    { name: "Cart Assistance", count: 12 },
+    { key: "sourcing", name: "Sourcing Requests", note: "14 new requests", count: 14 },
+    { key: "quotes", name: "Quote Reviews", note: "8 quotes pending review", count: 8 },
+    { key: "onboarding", name: "Merchant Onboarding", note: "5 merchants in progress", count: 5 },
+    { key: "cart", name: "Cart Assistance", note: "12 active buyer carts", count: 12 },
+  ],
+  agentQueueTotal: 39,
+  zones: [
+    { name: "The Grand Atrium", slots: 72, color: "#C8B6E8" },
+    { name: "Food Hall", slots: 86, color: "#F2A687" },
+    { name: "Office Emporium", slots: 64, color: "#F4D88A" },
+    { name: "Gifting Pavilion", slots: 58, color: "#F8E3B0" },
+    { name: "Makers' District", slots: 48, color: "#B7D9C9" },
+    { name: "B2B Exchange", slots: 72, color: "#A8C8E8" },
   ],
 };
 

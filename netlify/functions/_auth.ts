@@ -14,6 +14,13 @@ import { createRemoteJWKSet, jwtVerify } from "jose";
 const CLIENT_ID = process.env.WORKOS_CLIENT_ID || process.env.VITE_WORKOS_CLIENT_ID;
 const WORKOS_API_HOSTNAME = process.env.WORKOS_API_HOSTNAME || "api.workos.com";
 
+// Demo bypass is OPT-IN. It is granted only when DEMO_MODE is explicitly "true",
+// or when running locally (no NETLIFY env) without WorkOS configured. In a
+// Netlify production deploy with no DEMO_MODE flag, authentication fails closed —
+// anonymous callers are NOT silently treated as operators.
+const DEMO_MODE =
+  process.env.DEMO_MODE === "true" || (!process.env.NETLIFY && !CLIENT_ID);
+
 export interface AuthedUser {
   id: string;
   email?: string;
@@ -42,33 +49,42 @@ function deriveRole(email?: string): string {
 }
 
 export async function authenticate(req: Request): Promise<AuthedUser | null> {
-  // Demo mode: no WorkOS configured → synthetic operator.
-  if (!CLIENT_ID) {
+  // Real auth path — when WorkOS is configured, a valid token is required.
+  if (CLIENT_ID) {
+    const header = req.headers.get("authorization") || "";
+    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    if (!token) return null;
+
+    const keySet = getJwks();
+    if (!keySet) return null;
+
+    try {
+      const { payload } = await jwtVerify(token, keySet, {
+        issuer: `https://${WORKOS_API_HOSTNAME}`,
+      });
+      const email = (payload.email as string | undefined) ?? undefined;
+      return {
+        id: String(payload.sub),
+        email,
+        role: (payload.role as string | undefined) ?? deriveRole(email),
+        demo: false,
+      };
+    } catch {
+      return null;
+    }
+  }
+
+  // No WorkOS configured: grant a synthetic operator ONLY in explicit demo mode.
+  // Otherwise fail closed (anonymous), so a misconfigured prod deploy does not
+  // hand every caller operator access.
+  if (DEMO_MODE) {
     return { id: "demo_operator", email: "demo+operator@accio.market", role: "operator", demo: true };
   }
-
-  const header = req.headers.get("authorization") || "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
-  if (!token) return null;
-
-  const keySet = getJwks();
-  if (!keySet) return null;
-
-  try {
-    const { payload } = await jwtVerify(token, keySet, {
-      issuer: `https://${WORKOS_API_HOSTNAME}`,
-    });
-    const email = (payload.email as string | undefined) ?? undefined;
-    return {
-      id: String(payload.sub),
-      email,
-      role: (payload.role as string | undefined) ?? deriveRole(email),
-      demo: false,
-    };
-  } catch {
-    return null;
-  }
+  return null;
 }
+
+/** Whether the platform is running in opt-in demo mode (no real auth). */
+export const isDemoMode = DEMO_MODE;
 
 export function requireRole(user: AuthedUser | null, roles: string[]): boolean {
   return Boolean(user && roles.includes(user.role));

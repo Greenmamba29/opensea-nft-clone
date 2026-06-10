@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Bell,
@@ -42,7 +42,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
+import { Modal } from "@/components/ui/modal";
 import { useAccioAuth } from "@/auth/auth-context";
+import {
+  getMallOverview,
+  listStorefronts,
+  submitQuote,
+  type MallOverview,
+  type Storefront,
+} from "@/lib/api";
 import {
   Table,
   TableBody,
@@ -52,75 +60,102 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-/* ── Data ───────────────────────────────────────────────── */
+/* ── Presentation maps (icons/colors are client concerns) ─── */
 
-const KPIS = [
-  { icon: Store, label: "Active Storefronts", value: "428", delta: "↑ 12 vs last month" },
-  { icon: LayoutDashboard, label: "Occupancy Rate", value: "87.3%", delta: "↑ 4.6pp vs last month" },
-  { icon: Wallet, label: "Monthly Lease Revenue", value: "$1.28M", delta: "↑ 18.6% vs last month" },
-  { icon: ShoppingBag, label: "GMV (This Month)", value: "$24.63M", delta: "↑ 21.3% vs last month" },
-  { icon: FileText, label: "Quote Requests", value: "156", delta: "↑ 9 vs last month" },
-  { icon: Bot, label: "Agent-Assisted Sales", value: "$6.74M", delta: "↑ 24.7% vs last month" },
-];
+const KPI_ICON: Record<string, typeof Store> = {
+  storefronts: Store,
+  occupancy: LayoutDashboard,
+  lease: Wallet,
+  gmv: ShoppingBag,
+  quotes: FileText,
+  agent: Bot,
+};
+const PLACEMENT_ICON: Record<string, typeof Store> = {
+  hero: Monitor,
+  aisle: Store,
+  crown: Crown,
+  popup: Tent,
+};
+const AGENT_ICON: Record<string, typeof Search> = {
+  sourcing: Search,
+  quotes: FileText,
+  onboarding: Users,
+  cart: ShoppingCart,
+};
 
-const OCCUPANCY = [
-  { name: "Occupied", value: 428, color: "#5B21B6" },
-  { name: "Vacant", value: 102, color: "#D8CFEA" },
-  { name: "Pending Applications", value: 70, color: "#E5C963" },
-];
+/* ── Fallback data (used until the API responds, or if it fails) ── */
 
-const TRENDS = [
-  { m: "May", revenue: 0.62, gmv: 11.2 },
-  { m: "Jun", revenue: 0.68, gmv: 12.8 },
-  { m: "Jul", revenue: 0.66, gmv: 14.1 },
-  { m: "Aug", revenue: 0.75, gmv: 15.6 },
-  { m: "Sep", revenue: 0.82, gmv: 17.2 },
-  { m: "Oct", revenue: 0.88, gmv: 16.4 },
-  { m: "Nov", revenue: 0.95, gmv: 19.8 },
-  { m: "Dec", revenue: 1.05, gmv: 23.5 },
-  { m: "Jan", revenue: 0.98, gmv: 20.1 },
-  { m: "Feb", revenue: 1.08, gmv: 21.9 },
-  { m: "Mar", revenue: 1.16, gmv: 23.2 },
-  { m: "Apr", revenue: 1.28, gmv: 24.6 },
-];
+const FALLBACK_OVERVIEW: MallOverview = {
+  kpis: [
+    { key: "storefronts", label: "Active Storefronts", value: "428", delta: "↑ 12 vs last month" },
+    { key: "occupancy", label: "Occupancy Rate", value: "87.3%", delta: "↑ 4.6pp vs last month" },
+    { key: "lease", label: "Monthly Lease Revenue", value: "$1.28M", delta: "↑ 18.6% vs last month" },
+    { key: "gmv", label: "GMV (This Month)", value: "$24.63M", delta: "↑ 21.3% vs last month" },
+    { key: "quotes", label: "Quote Requests", value: "156", delta: "↑ 9 vs last month" },
+    { key: "agent", label: "Agent-Assisted Sales", value: "$6.74M", delta: "↑ 24.7% vs last month" },
+  ],
+  occupancy: {
+    totalSlots: 600, occupied: 428, vacant: 102, pending: 70, rate: 87.3,
+    slices: [
+      { name: "Occupied", value: 428, color: "#5B21B6" },
+      { name: "Vacant", value: 102, color: "#D8CFEA" },
+      { name: "Pending Applications", value: 70, color: "#E5C963" },
+    ],
+  },
+  trends: [
+    { m: "May", revenue: 0.62, gmv: 11.2 }, { m: "Jun", revenue: 0.68, gmv: 12.8 },
+    { m: "Jul", revenue: 0.66, gmv: 14.1 }, { m: "Aug", revenue: 0.75, gmv: 15.6 },
+    { m: "Sep", revenue: 0.82, gmv: 17.2 }, { m: "Oct", revenue: 0.88, gmv: 16.4 },
+    { m: "Nov", revenue: 0.95, gmv: 19.8 }, { m: "Dec", revenue: 1.05, gmv: 23.5 },
+    { m: "Jan", revenue: 0.98, gmv: 20.1 }, { m: "Feb", revenue: 1.08, gmv: 21.9 },
+    { m: "Mar", revenue: 1.16, gmv: 23.2 }, { m: "Apr", revenue: 1.28, gmv: 24.6 },
+  ],
+  categories: [
+    { icon: "🍱", name: "Food & Beverage", gmv: "$7.82M", share: "31.8%", delta: "↑ 18.2%" },
+    { icon: "🖇️", name: "Office Supplies", gmv: "$5.43M", share: "22.1%", delta: "↑ 16.7%" },
+    { icon: "🎁", name: "Corporate Gifting", gmv: "$4.21M", share: "17.1%", delta: "↑ 22.9%" },
+    { icon: "🧶", name: "Local Makers", gmv: "$3.11M", share: "12.6%", delta: "↑ 19.4%" },
+    { icon: "📦", name: "B2B Sourcing", gmv: "$4.06M", share: "16.5%", delta: "↑ 24.1%" },
+  ],
+  placements: [
+    { key: "hero", name: "Homepage Hero Slots", note: "8 available", count: "2 / 10" },
+    { key: "aisle", name: "Premium Aisle Placements", note: "12 available", count: "18 / 30" },
+    { key: "crown", name: "Premium Row (Top Shelf)", note: "6 available", count: "6 / 12" },
+    { key: "popup", name: "Seasonal Pop-Up Spaces", note: "9 available", count: "4 / 15" },
+  ],
+  agentQueue: [
+    { key: "sourcing", name: "Sourcing Requests", note: "14 new requests", count: 14 },
+    { key: "quotes", name: "Quote Reviews", note: "8 quotes pending review", count: 8 },
+    { key: "onboarding", name: "Merchant Onboarding", note: "5 merchants in progress", count: 5 },
+    { key: "cart", name: "Cart Assistance", note: "12 active buyer carts", count: 12 },
+  ],
+  agentQueueTotal: 39,
+  zones: [
+    { name: "The Grand Atrium", slots: 72, color: "#C8B6E8" },
+    { name: "Food Hall", slots: 86, color: "#F2A687" },
+    { name: "Office Emporium", slots: 64, color: "#F4D88A" },
+    { name: "Gifting Pavilion", slots: 58, color: "#F8E3B0" },
+    { name: "Makers' District", slots: 48, color: "#B7D9C9" },
+    { name: "B2B Exchange", slots: 72, color: "#A8C8E8" },
+  ],
+};
 
-const CATEGORIES = [
-  { icon: "🍱", name: "Food & Beverage", gmv: "$7.82M", share: "31.8%", delta: "↑ 18.2%" },
-  { icon: "🖇️", name: "Office Supplies", gmv: "$5.43M", share: "22.1%", delta: "↑ 16.7%" },
-  { icon: "🎁", name: "Corporate Gifting", gmv: "$4.21M", share: "17.1%", delta: "↑ 22.9%" },
-  { icon: "🧶", name: "Local Makers", gmv: "$3.11M", share: "12.6%", delta: "↑ 19.4%" },
-  { icon: "📦", name: "B2B Sourcing", gmv: "$4.06M", share: "16.5%", delta: "↑ 24.1%" },
-];
+type AppRow = { merchant: string; type: string; category: string; status: string; statusVariant: "warning" | "info" | "success" | "secondary"; agent: string };
 
-const APPLICATIONS = [
-  { merchant: "Brewed Awakenings", type: "Retail Store", category: "Food & Beverage", status: "Under Review", statusVariant: "warning" as const, agent: "Ava Reynolds" },
-  { merchant: "Stationery House", type: "Retail Store", category: "Office Supplies", status: "Documents Pending", statusVariant: "info" as const, agent: "Liam Chen" },
-  { merchant: "Giftease Corp", type: "Brand Store", category: "Corporate Gifting", status: "Shortlisted", statusVariant: "success" as const, agent: "Maya Kapoor" },
-  { merchant: "Artisan Lane", type: "Retail Store", category: "Local Makers", status: "New Application", statusVariant: "secondary" as const, agent: "Noah Williams" },
-  { merchant: "SupplyHub Co.", type: "B2B Store", category: "B2B Sourcing", status: "Under Review", statusVariant: "warning" as const, agent: "Ava Reynolds" },
-];
+const STATUS_MAP: Record<Storefront["status"], { label: string; variant: AppRow["statusVariant"] }> = {
+  new: { label: "New Application", variant: "secondary" },
+  under_review: { label: "Under Review", variant: "warning" },
+  documents_pending: { label: "Documents Pending", variant: "info" },
+  shortlisted: { label: "Shortlisted", variant: "success" },
+  active: { label: "Active", variant: "success" },
+};
 
-const PLACEMENTS = [
-  { icon: Monitor, name: "Homepage Hero Slots", note: "8 available", count: "2 / 10" },
-  { icon: Store, name: "Premium Aisle Placements", note: "12 available", count: "18 / 30" },
-  { icon: Crown, name: "Premium Row (Top Shelf)", note: "6 available", count: "6 / 12" },
-  { icon: Tent, name: "Seasonal Pop-Up Spaces", note: "9 available", count: "4 / 15" },
-];
-
-const AGENT_QUEUE = [
-  { icon: Search, name: "Sourcing Requests", note: "14 new requests", count: 14 },
-  { icon: FileText, name: "Quote Reviews", note: "8 quotes pending review", count: 8 },
-  { icon: Users, name: "Merchant Onboarding", note: "5 merchants in progress", count: 5 },
-  { icon: ShoppingCart, name: "Cart Assistance", note: "12 active buyer carts", count: 12 },
-];
-
-const ZONES = [
-  { name: "The Grand Atrium", slots: 72, color: "#C8B6E8" },
-  { name: "Food Hall", slots: 86, color: "#F2A687" },
-  { name: "Office Emporium", slots: 64, color: "#F4D88A" },
-  { name: "Gifting Pavilion", slots: 58, color: "#F8E3B0" },
-  { name: "Makers' District", slots: 48, color: "#B7D9C9" },
-  { name: "B2B Exchange", slots: 72, color: "#A8C8E8" },
+const FALLBACK_APPS: AppRow[] = [
+  { merchant: "Brewed Awakenings", type: "Retail Store", category: "Food & Beverage", status: "Under Review", statusVariant: "warning", agent: "Ava Reynolds" },
+  { merchant: "Stationery House", type: "Retail Store", category: "Office Supplies", status: "Documents Pending", statusVariant: "info", agent: "Liam Chen" },
+  { merchant: "Giftease Corp", type: "Brand Store", category: "Corporate Gifting", status: "Shortlisted", statusVariant: "success", agent: "Maya Kapoor" },
+  { merchant: "Artisan Lane", type: "Retail Store", category: "Local Makers", status: "New Application", statusVariant: "secondary", agent: "Noah Williams" },
+  { merchant: "SupplyHub Co.", type: "B2B Store", category: "B2B Sourcing", status: "Under Review", statusVariant: "warning", agent: "Ava Reynolds" },
 ];
 
 const NAV = [
@@ -141,6 +176,43 @@ const NAV = [
 export default function MallOSPage() {
   const [trendMode, setTrendMode] = useState<"revenue" | "gmv">("revenue");
   const { user, signOut } = useAccioAuth();
+
+  // Live data from /api/mall/overview + /api/storefronts, with static fallback.
+  const [ov, setOv] = useState<MallOverview>(FALLBACK_OVERVIEW);
+  const [apps, setApps] = useState<AppRow[]>(FALLBACK_APPS);
+  const [dataSource, setDataSource] = useState<"loading" | "live" | "fallback">("loading");
+  const [quoteOpen, setQuoteOpen] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    getMallOverview()
+      .then((r) => {
+        if (alive) {
+          setOv(r.overview);
+          setDataSource("live");
+        }
+      })
+      .catch(() => alive && setDataSource("fallback"));
+    listStorefronts()
+      .then((r) => {
+        if (!alive) return;
+        setApps(
+          r.storefronts.map((s) => ({
+            merchant: s.merchant,
+            type: s.storeType,
+            category: s.category,
+            status: STATUS_MAP[s.status].label,
+            statusVariant: STATUS_MAP[s.status].variant,
+            agent: s.assignedAgent,
+          }))
+        );
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, []);
+
   const displayName =
     user && (user.firstName || user.lastName)
       ? `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
@@ -202,7 +274,20 @@ export default function MallOSPage() {
             </kbd>
           </div>
           <div className="ml-auto flex items-center gap-3">
-            <Button variant="gold" size="sm">
+            <span
+              className={`hidden items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold sm:inline-flex ${
+                dataSource === "live"
+                  ? "bg-emerald-100 text-emerald-700"
+                  : dataSource === "loading"
+                  ? "bg-secondary text-muted-foreground"
+                  : "bg-amber-100 text-amber-700"
+              }`}
+              title="Source of the figures on this page"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-current" />
+              {dataSource === "live" ? "Live data" : dataSource === "loading" ? "Loading…" : "Sample data"}
+            </span>
+            <Button variant="gold" size="sm" onClick={() => setQuoteOpen(true)}>
               <Plus /> New Quote
             </Button>
             <button className="relative rounded-lg bg-transparent p-2 hover:bg-secondary">
@@ -238,18 +323,21 @@ export default function MallOSPage() {
         <main className="space-y-5 p-6">
           {/* KPI row */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
-            {KPIS.map((k) => (
-              <Card key={k.label}>
-                <CardContent className="p-4">
-                  <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-primary">
-                    <k.icon className="h-4 w-4" />
-                  </span>
-                  <div className="text-xs font-medium text-muted-foreground">{k.label}</div>
-                  <div className="mt-1 text-2xl font-extrabold tracking-tight">{k.value}</div>
-                  <div className="mt-1 text-xs font-semibold text-emerald-600">{k.delta}</div>
-                </CardContent>
-              </Card>
-            ))}
+            {ov.kpis.map((k) => {
+              const Icon = KPI_ICON[k.key] ?? Store;
+              return (
+                <Card key={k.key}>
+                  <CardContent className="p-4">
+                    <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-primary">
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <div className="text-xs font-medium text-muted-foreground">{k.label}</div>
+                    <div className="mt-1 text-2xl font-extrabold tracking-tight">{k.value}</div>
+                    <div className="mt-1 text-xs font-semibold text-emerald-600">{k.delta}</div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
 
           {/* Charts row */}
@@ -264,21 +352,21 @@ export default function MallOSPage() {
                 <div className="relative mx-auto h-44 w-44">
                   <ResponsiveContainer>
                     <PieChart>
-                      <Pie data={OCCUPANCY} dataKey="value" innerRadius={58} outerRadius={80} paddingAngle={2} strokeWidth={0}>
-                        {OCCUPANCY.map((o) => (
+                      <Pie data={ov.occupancy.slices} dataKey="value" innerRadius={58} outerRadius={80} paddingAngle={2} strokeWidth={0}>
+                        {ov.occupancy.slices.map((o) => (
                           <Cell key={o.name} fill={o.color} />
                         ))}
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
                   <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-extrabold">87.3%</span>
+                    <span className="text-2xl font-extrabold">{ov.occupancy.rate}%</span>
                     <span className="text-xs text-muted-foreground">Occupied</span>
                   </div>
                 </div>
                 <div className="mt-4 space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Total Storefront Slots</span><b>600</b></div>
-                  {OCCUPANCY.map((o) => (
+                  <div className="flex justify-between"><span className="text-muted-foreground">Total Storefront Slots</span><b>{ov.occupancy.totalSlots}</b></div>
+                  {ov.occupancy.slices.map((o) => (
                     <div key={o.name} className="flex items-center justify-between">
                       <span className="flex items-center gap-2 text-muted-foreground">
                         <span className="h-2.5 w-2.5 rounded-sm" style={{ background: o.color }} /> {o.name}
@@ -318,7 +406,7 @@ export default function MallOSPage() {
                 </div>
                 <div className="h-60">
                   <ResponsiveContainer>
-                    <LineChart data={TRENDS} margin={{ top: 5, right: 10, bottom: 0, left: -14 }}>
+                    <LineChart data={ov.trends} margin={{ top: 5, right: 10, bottom: 0, left: -14 }}>
                       <CartesianGrid stroke="#EEE9F6" vertical={false} />
                       <XAxis dataKey="m" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8B83A0" }} />
                       <YAxis tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "#8B83A0" }} />
@@ -359,7 +447,7 @@ export default function MallOSPage() {
                   <span>Category</span><span>GMV</span><span>% of Total</span><span>vs Last Mo</span>
                 </div>
                 <div className="space-y-3">
-                  {CATEGORIES.map((c) => (
+                  {ov.categories.map((c) => (
                     <div key={c.name} className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-x-4 text-sm">
                       <span className="flex items-center gap-2 font-medium">
                         <span>{c.icon}</span> {c.name}
@@ -394,7 +482,7 @@ export default function MallOSPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {APPLICATIONS.map((a) => (
+                    {apps.map((a) => (
                       <TableRow key={a.merchant}>
                         <TableCell className="flex items-center gap-2 font-semibold">
                           <Avatar name={a.merchant} className="h-7 w-7" /> {a.merchant}
@@ -417,11 +505,13 @@ export default function MallOSPage() {
                 <Button variant="ghost" size="sm">View Inventory</Button>
               </CardHeader>
               <CardContent className="space-y-3">
-                {PLACEMENTS.map((p) => (
-                  <div key={p.name} className="flex items-center justify-between rounded-xl border border-border p-3">
+                {ov.placements.map((p) => {
+                  const Icon = PLACEMENT_ICON[p.key] ?? Store;
+                  return (
+                  <div key={p.key} className="flex items-center justify-between rounded-xl border border-border p-3">
                     <div className="flex items-center gap-3">
                       <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-primary">
-                        <p.icon className="h-4 w-4" />
+                        <Icon className="h-4 w-4" />
                       </span>
                       <span>
                         <span className="block text-sm font-semibold">{p.name}</span>
@@ -430,7 +520,8 @@ export default function MallOSPage() {
                     </div>
                     <span className="text-sm font-bold">{p.count}</span>
                   </div>
-                ))}
+                  );
+                })}
               </CardContent>
             </Card>
 
@@ -441,11 +532,13 @@ export default function MallOSPage() {
                 <Button variant="ghost" size="sm">View All</Button>
               </CardHeader>
               <CardContent className="space-y-3">
-                {AGENT_QUEUE.map((q) => (
-                  <div key={q.name} className="flex items-center justify-between rounded-xl border border-border p-3">
+                {ov.agentQueue.map((q) => {
+                  const Icon = AGENT_ICON[q.key] ?? Search;
+                  return (
+                  <div key={q.key} className="flex items-center justify-between rounded-xl border border-border p-3">
                     <div className="flex items-center gap-3">
                       <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary text-primary">
-                        <q.icon className="h-4 w-4" />
+                        <Icon className="h-4 w-4" />
                       </span>
                       <span>
                         <span className="block text-sm font-semibold">{q.name}</span>
@@ -456,10 +549,11 @@ export default function MallOSPage() {
                       {q.count}
                     </span>
                   </div>
-                ))}
+                  );
+                })}
                 <div className="flex items-center justify-between border-t border-border pt-3 text-sm font-bold">
                   <span>Total Open Tasks</span>
-                  <span className="text-xl">39</span>
+                  <span className="text-xl">{ov.agentQueueTotal}</span>
                 </div>
               </CardContent>
             </Card>
@@ -475,7 +569,7 @@ export default function MallOSPage() {
               <div className="grid gap-8 lg:grid-cols-[200px_1fr_260px]">
                 {/* Legend */}
                 <div className="space-y-2.5">
-                  {ZONES.map((z) => (
+                  {ov.zones.map((z) => (
                     <div key={z.name} className="flex items-center justify-between text-sm">
                       <span className="flex items-center gap-2">
                         <span className="h-3 w-3 rounded-sm" style={{ background: z.color }} /> {z.name}
@@ -489,12 +583,12 @@ export default function MallOSPage() {
                   <svg viewBox="0 0 560 240" className="w-full max-w-2xl">
                     <text x="280" y="12" textAnchor="middle" fontSize="8" fill="#8B83A0" letterSpacing="2">NORTH ENTRANCE</text>
                     <g stroke="#fff" strokeWidth="3">
-                      <path d="M60 40 Q60 25 90 25 H230 V100 H60 Z" fill={ZONES[0].color} rx="10" />
-                      <path d="M330 25 H470 Q500 25 500 40 V100 H330 Z" fill={ZONES[5].color} />
-                      <path d="M60 140 V200 Q60 215 90 215 H230 V140 Z" fill={ZONES[1].color} />
-                      <path d="M330 140 H500 V200 Q500 215 470 215 H330 Z" fill={ZONES[2].color} />
-                      <rect x="238" y="25" width="84" height="75" fill={ZONES[3].color} />
-                      <rect x="238" y="140" width="84" height="75" fill={ZONES[4].color} />
+                      <path d="M60 40 Q60 25 90 25 H230 V100 H60 Z" fill={ov.zones[0].color} rx="10" />
+                      <path d="M330 25 H470 Q500 25 500 40 V100 H330 Z" fill={ov.zones[5].color} />
+                      <path d="M60 140 V200 Q60 215 90 215 H230 V140 Z" fill={ov.zones[1].color} />
+                      <path d="M330 140 H500 V200 Q500 215 470 215 H330 Z" fill={ov.zones[2].color} />
+                      <rect x="238" y="25" width="84" height="75" fill={ov.zones[3].color} />
+                      <rect x="238" y="140" width="84" height="75" fill={ov.zones[4].color} />
                     </g>
                     <circle cx="280" cy="120" r="34" fill="#fff" stroke="#E6E0F0" />
                     <circle cx="280" cy="120" r="26" fill="#3B1680" />
@@ -535,6 +629,93 @@ export default function MallOSPage() {
           </Card>
         </main>
       </div>
+
+      <NewQuoteModal open={quoteOpen} onClose={() => setQuoteOpen(false)} />
     </div>
+  );
+}
+
+/* ── New Quote — posts a real B2B quote to /api/quotes ─────── */
+
+function NewQuoteModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [company, setCompany] = useState("");
+  const [name, setName] = useState("");
+  const [qty, setQty] = useState("500");
+  const [unitPrice, setUnitPrice] = useState("3.45");
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<{ id: string; total: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      const { quote } = await submitQuote({
+        company: company || undefined,
+        items: [
+          {
+            sku: name.slice(0, 6).toUpperCase().replace(/\s/g, "") || "ITEM",
+            name: name || "Custom item",
+            qty: Number(qty) || 1,
+            unitPrice: Number(unitPrice) || 0,
+          },
+        ],
+      });
+      setResult({ id: quote.id, total: quote.total });
+    } catch {
+      setError("Couldn't submit the quote. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function close() {
+    setResult(null);
+    setError(null);
+    onClose();
+  }
+
+  return (
+    <Modal open={open} onClose={close} title="New B2B Quote" description="Create a quote and route it to the sourcing agents.">
+      {result ? (
+        <div className="space-y-4 text-sm">
+          <div className="rounded-xl bg-emerald-50 p-4 text-emerald-800">
+            Quote <b>{result.id}</b> created and submitted for white-glove review.
+            <div className="mt-1">Total: <b>${result.total.toLocaleString()}</b></div>
+          </div>
+          <Button className="w-full" onClick={close}>Done</Button>
+        </div>
+      ) : (
+        <form onSubmit={onSubmit} className="space-y-3 text-sm">
+          <label className="block">
+            <span className="mb-1 block font-medium">Company</span>
+            <input className="h-10 w-full" value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Northwind Logistics" />
+          </label>
+          <label className="block">
+            <span className="mb-1 block font-medium">Product</span>
+            <input className="h-10 w-full" value={name} onChange={(e) => setName(e.target.value)} placeholder="Insulated Tumbler 500ml" required />
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block">
+              <span className="mb-1 block font-medium">Quantity</span>
+              <input type="number" min={1} className="h-10 w-full" value={qty} onChange={(e) => setQty(e.target.value)} />
+            </label>
+            <label className="block">
+              <span className="mb-1 block font-medium">Unit price ($)</span>
+              <input type="number" min={0} step="0.01" className="h-10 w-full" value={unitPrice} onChange={(e) => setUnitPrice(e.target.value)} />
+            </label>
+          </div>
+          <div className="flex items-center justify-between pt-1 text-muted-foreground">
+            <span>Estimated total</span>
+            <b className="text-foreground">${((Number(qty) || 0) * (Number(unitPrice) || 0)).toLocaleString()}</b>
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="submit" className="w-full" disabled={submitting}>
+            {submitting ? "Submitting…" : "Submit quote"}
+          </Button>
+        </form>
+      )}
+    </Modal>
   );
 }

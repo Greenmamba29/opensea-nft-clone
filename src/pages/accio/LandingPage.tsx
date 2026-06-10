@@ -30,7 +30,16 @@ import { Switch } from "@/components/ui/switch";
 import { useAccioAuth } from "@/auth/auth-context";
 import Reveal from "@/components/accio/Reveal";
 import Concierge from "@/components/accio/Concierge";
+import ApplyStorefrontModal from "@/components/accio/ApplyStorefrontModal";
 import { MallHero, MALL_HERO_DURATION, MALL_HERO_FPS } from "@/remotion/MallHero";
+
+type Tier = "rent" | "lease" | "own";
+const PLAN_TIER: Record<string, Tier> = {
+  "Pop-Up Booth": "rent",
+  "Starter Storefront": "rent",
+  "Premium Storefront": "lease",
+  "Anchor Tenant": "own",
+};
 
 const STATS = [
   { icon: Store, value: "2,350+", label: "Active Storefronts" },
@@ -107,7 +116,13 @@ const AGENT_TEAM = [
 
 export default function LandingPage() {
   const [annual, setAnnual] = useState(false);
-  const { user, signIn, signUp, signOut } = useAccioAuth();
+  const { user, signIn, signOut } = useAccioAuth();
+  const [applyOpen, setApplyOpen] = useState(false);
+  const [applyTier, setApplyTier] = useState<Tier>("rent");
+  const openApply = (tier: Tier = "rent") => {
+    setApplyTier(tier);
+    setApplyOpen(true);
+  };
 
   return (
     <div className="accio-theme min-h-screen">
@@ -140,7 +155,7 @@ export default function LandingPage() {
                 <Button variant="ghost" className="hidden sm:inline-flex" onClick={() => signIn()}>
                   Sign In
                 </Button>
-                <Button onClick={() => signUp()}>
+                <Button onClick={() => openApply()}>
                   Apply for a Storefront <ArrowRight />
                 </Button>
               </>
@@ -164,12 +179,14 @@ export default function LandingPage() {
             commerce agents.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Button size="lg">
+            <Button size="lg" onClick={() => openApply()}>
               Apply for a Storefront <ArrowRight />
             </Button>
-            <Button size="lg" variant="outline">
-              <Store /> Explore the Mall
-            </Button>
+            <Link to="/mall">
+              <Button size="lg" variant="outline">
+                <Store /> Explore the Mall
+              </Button>
+            </Link>
           </div>
           <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
             <ShieldCheck className="h-4 w-4 text-accio-gold" />
@@ -308,6 +325,7 @@ export default function LandingPage() {
                       <Button
                         className="mt-5 w-full"
                         variant={p.popular ? "default" : "outline"}
+                        onClick={() => openApply(PLAN_TIER[p.name] ?? "rent")}
                       >
                         {p.cta ?? "Select Plan"}
                       </Button>
@@ -377,7 +395,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="flex shrink-0 gap-4">
-              <Button size="lg" variant="gold">
+              <Button size="lg" variant="gold" onClick={() => openApply()}>
                 Apply for a Storefront <ArrowRight />
               </Button>
               <Button size="lg" variant="outline" className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white">
@@ -422,6 +440,7 @@ export default function LandingPage() {
         </div>
       </footer>
 
+      <ApplyStorefrontModal open={applyOpen} onClose={() => setApplyOpen(false)} tier={applyTier} />
       <Concierge surface="landing" />
     </div>
   );
