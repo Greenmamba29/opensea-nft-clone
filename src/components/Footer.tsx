@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
@@ -13,7 +14,7 @@ export default function Footer() {
           <span>✦</span>
           <span>Concierge online</span>
         </div>
-        <a href="#" className="hover:text-[var(--os-text)]">Mall Map</a>
+        <Link to="/mall/directions" className="hover:text-[var(--os-text)]">Mall Map</Link>
       </div>
 
       {/* Center */}
@@ -27,21 +28,11 @@ export default function Footer() {
       {/* Right */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-1">
-          <span>📈</span>
-          <span>$680.4M GMV</span>
-          <span className="ml-1 text-[var(--os-green)]">+12.4%</span>
+          <span>🏗️</span>
+          <span>Launch cohort: Brooklyn Navy Yard</span>
         </div>
-        <div className="flex items-center gap-1">
-          <span>📊</span>
-          <span>4,250 Active RFQs</span>
-        </div>
-        <a href="#" className="hover:text-[var(--os-text)]">Support</a>
+        <Link to="/mall/support" className="hover:text-[var(--os-text)]">Support</Link>
         <div className="flex items-center gap-3 border-l border-[var(--os-border)] pl-4 h-full">
-          <div className="flex items-center gap-1 cursor-pointer hover:text-[var(--os-text)]">
-            <span>👤 Operator</span>
-            <span>▼</span>
-          </div>
-          <span className="cursor-pointer hover:text-[var(--os-text)]">🌙</span>
           <div className="flex items-center gap-1 cursor-pointer hover:text-[var(--os-text)]">
             <span>USD</span>
             <span>▼</span>

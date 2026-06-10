@@ -2,6 +2,7 @@ import type { Config, Context } from "@netlify/functions";
 
 import { authenticate, json, unauthorized } from "./_auth";
 import { QUOTES, type Quote } from "./_data";
+import { insertQuote, listQuotesDb } from "./_db";
 
 /**
  * GET  /api/quotes      → list quotes
@@ -12,7 +13,8 @@ export default async (req: Request, _context: Context) => {
   if (!user) return unauthorized();
 
   if (req.method === "GET") {
-    return json({ quotes: QUOTES });
+    const persisted = await listQuotesDb();
+    return json({ quotes: [...persisted, ...QUOTES] });
   }
 
   if (req.method === "POST") {
@@ -39,8 +41,19 @@ export default async (req: Request, _context: Context) => {
       total,
       createdAt: new Date().toISOString(),
     };
-    // Production: persist + create Agent Task "Quote Review" + notify sourcing agent.
-    return json({ quote: created, message: "Quote submitted for white-glove review." }, 201);
+    // Persist to Netlify Postgres so the quote survives (best-effort; no-ops in
+    // demo mode). Agent Task "Quote Review" + sourcing notify land in a later phase.
+    const persisted = await insertQuote({
+      id: created.id,
+      buyer: created.buyer,
+      company: created.company,
+      items: created.items,
+      request: created.request,
+      status: created.status,
+      total: created.total,
+      createdAt: created.createdAt,
+    });
+    return json({ quote: created, persisted, message: "Quote submitted for white-glove review." }, 201);
   }
 
   return json({ error: "method_not_allowed" }, 405);

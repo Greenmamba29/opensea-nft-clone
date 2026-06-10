@@ -1,10 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AISLES, MALL_PRODUCTS, aisleBySlug } from '@/lib/mallData';
 
 export default function ProductsPage() {
+  const [searchParams] = useSearchParams();
   const [query, setQuery] = useState('');
-  const [activeAisle, setActiveAisle] = useState<string | null>(null);
+  const [activeAisle, setActiveAisle] = useState<string | null>(
+    () => aisleBySlug(searchParams.get('aisle') ?? undefined)?.slug ?? null
+  );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

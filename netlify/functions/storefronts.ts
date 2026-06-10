@@ -2,6 +2,7 @@ import type { Config, Context } from "@netlify/functions";
 
 import { authenticate, requireRole, json, unauthorized } from "./_auth";
 import { STOREFRONTS, type Storefront } from "./_data";
+import { insertApplication, listApplications } from "./_db";
 
 /**
  * GET  /api/storefronts   → list storefronts (operator/agent only)
@@ -13,7 +14,20 @@ export default async (req: Request, _context: Context) => {
   if (req.method === "GET") {
     // Listing all tenants is operator/agent only.
     if (!requireRole(user, ["operator", "agent"])) return unauthorized();
-    return json({ storefronts: STOREFRONTS });
+    // Persisted applications (newest first) + seed storefronts.
+    const applied = await listApplications();
+    const appliedAsStorefronts: Storefront[] = applied.map((a) => ({
+      id: a.id,
+      merchant: a.merchant,
+      storeType: (a.storeType as Storefront["storeType"]) ?? "Retail Store",
+      category: a.category,
+      aisle: "",
+      tier: (a.tier as Storefront["tier"]) ?? "rent",
+      status: (a.status as Storefront["status"]) ?? "new",
+      assignedAgent: a.assignedAgent,
+      monthlyLease: a.monthlyLease,
+    }));
+    return json({ storefronts: [...appliedAsStorefronts, ...STOREFRONTS] });
   }
 
   if (req.method === "POST") {
@@ -26,7 +40,7 @@ export default async (req: Request, _context: Context) => {
     if (!body.merchant || !body.category) {
       return json({ error: "merchant and category are required" }, 422);
     }
-    const created: Storefront = {
+    const created = {
       id: "sf_" + Math.random().toString(36).slice(2, 8),
       merchant: body.merchant,
       storeType: body.storeType ?? "Retail Store",
@@ -36,11 +50,21 @@ export default async (req: Request, _context: Context) => {
       assignedAgent: "Unassigned",
       monthlyLease: body.monthlyLease ?? 59,
     };
-    // In production: INSERT into Postgres storefronts + mirror to Airtable +
-    // create an Agent Task for white-glove onboarding. (Public endpoint — add
-    // rate limiting / captcha before launch.)
+    // Persist to Netlify Postgres so the application survives (best-effort;
+    // no-ops in demo mode without a database). Airtable mirror + onboarding
+    // Agent Task land in a later phase. (Public endpoint — add rate limiting.)
+    const extra = body as { contactEmail?: string; notes?: string };
+    const persisted = await insertApplication({
+      ...created,
+      contactEmail: extra.contactEmail ?? null,
+      notes: extra.notes ?? null,
+      createdAt: new Date().toISOString(),
+    });
     void user; // applicant may be anonymous; captured if signed in
-    return json({ storefront: created, message: "Application received. An GrahmOS agent will reach out." }, 201);
+    return json(
+      { storefront: created, persisted, message: "Application received. A GrahmOS agent will reach out." },
+      201
+    );
   }
 
   return json({ error: "method_not_allowed" }, 405);

@@ -1,9 +1,12 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useRoute } from "@/lib/routeContext";
 
 export default function Header() {
   const { pathname } = useLocation();
+  const { route } = useRoute();
   const guided = pathname.startsWith("/mall/directions");
+  const routeActive = Boolean(route);
 
   return (
     <header className="sticky top-0 z-40 h-14 bg-os-bg/80 backdrop-blur-md flex items-center px-4 border-b border-[var(--os-border)] gap-4">
@@ -26,11 +29,19 @@ export default function Header() {
         </Link>
         <Link
           to="/mall/directions"
-          className={`px-3 py-1 rounded-lg transition-colors ${
-            guided ? "bg-[var(--os-surface-3)]" : "text-[var(--os-text-secondary)] hover:text-[var(--os-text)]"
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-colors ${
+            guided || routeActive
+              ? "bg-[var(--os-surface-3)]"
+              : "text-[var(--os-text-secondary)] hover:text-[var(--os-text)]"
           }`}
         >
           Guided
+          {routeActive && (
+            <span
+              className="h-1.5 w-1.5 rounded-full bg-[var(--os-blue)]"
+              title="Route in progress"
+            />
+          )}
         </Link>
       </div>
 
