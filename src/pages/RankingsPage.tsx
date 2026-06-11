@@ -112,6 +112,11 @@ export default function RankingsPage() {
                           <div className="flex items-center space-x-1">
                             <span className="font-bold group-hover:text-[var(--os-blue)] transition-colors">{store.merchant}</span>
                             <span className="text-[var(--os-blue)] text-xs">✓</span>
+                            {store.platform === 'shopify' && (
+                              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-[var(--os-green)]/30 bg-[var(--os-green)]/15 text-[var(--os-green)]">
+                                🛍 Shopify
+                              </span>
+                            )}
                           </div>
                           <span className="text-xs text-[var(--os-text-secondary)] font-medium">{store.tagline}</span>
                         </div>

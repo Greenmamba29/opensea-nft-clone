@@ -41,17 +41,22 @@ export interface MallStorefront {
   monthlySales: string;
   customers: number;
   fromPrice: string;
+  /** Commerce engine behind this storefront. Every mall unit is a Shopify
+   *  store provisioned by GrahmOS; 'native' marks legacy/demo-only units. */
+  platform: "shopify" | "native";
+  /** myshopify.com domain for platform === 'shopify' storefronts. */
+  shopifyDomain?: string;
 }
 
 export const MALL_STOREFRONTS: MallStorefront[] = [
-  { id: "sf_01", merchant: "Brewed Awakenings", storeType: "Retail Store", aisle: "food-beverage", tier: "lease", tagline: "Small-batch coffee for offices and events.", icon: "☕", monthlySales: "$42K", customers: 1240, fromPrice: "$14" },
-  { id: "sf_02", merchant: "Stationery House", storeType: "Retail Store", aisle: "office-services", tier: "rent", tagline: "Paper, print, and desk supplies delivered next day.", icon: "🖇️", monthlySales: "$28K", customers: 860, fromPrice: "$6" },
-  { id: "sf_03", merchant: "Giftease Corp", storeType: "Brand Store", aisle: "apparel-merch", tier: "own", tagline: "Corporate gifting and branded merch, white-glove.", icon: "🎁", monthlySales: "$96K", customers: 410, fromPrice: "$22" },
-  { id: "sf_04", merchant: "Artisan Lane", storeType: "Retail Store", aisle: "local-brands", tier: "rent", tagline: "A rotating shelf of neighborhood makers.", icon: "🧶", monthlySales: "$12K", customers: 530, fromPrice: "$18" },
-  { id: "sf_05", merchant: "SupplyHub Co.", storeType: "B2B Store", aisle: "packaging", tier: "lease", tagline: "Boxes, mailers, and custom packaging at volume.", icon: "📦", monthlySales: "$117K", customers: 290, fromPrice: "$0.42" },
-  { id: "sf_06", merchant: "BNY Metalworks", storeType: "B2B Store", aisle: "fabrication", tier: "lease", tagline: "CNC, laser cutting, and short-run fabrication.", icon: "🔩", monthlySales: "$84K", customers: 150, fromPrice: "$35" },
-  { id: "sf_07", merchant: "Circuit & Co.", storeType: "Retail Store", aisle: "electronics", tier: "rent", tagline: "Components, assemblies, and same-week repair.", icon: "🔌", monthlySales: "$51K", customers: 720, fromPrice: "$3.10" },
-  { id: "sf_08", merchant: "Harbor Lines", storeType: "B2B Store", aisle: "logistics", tier: "lease", tagline: "Same-day courier and borough-wide freight.", icon: "🚚", monthlySales: "$63K", customers: 340, fromPrice: "$12" },
+  { id: "sf_01", merchant: "Brewed Awakenings", storeType: "Retail Store", aisle: "food-beverage", tier: "lease", tagline: "Small-batch coffee for offices and events.", icon: "☕", monthlySales: "$42K", customers: 1240, fromPrice: "$14", platform: "shopify", shopifyDomain: "brewed-awakenings-bny.myshopify.com" },
+  { id: "sf_02", merchant: "Stationery House", storeType: "Retail Store", aisle: "office-services", tier: "rent", tagline: "Paper, print, and desk supplies delivered next day.", icon: "🖇️", monthlySales: "$28K", customers: 860, fromPrice: "$6", platform: "native" },
+  { id: "sf_03", merchant: "Giftease Corp", storeType: "Brand Store", aisle: "apparel-merch", tier: "own", tagline: "Corporate gifting and branded merch, white-glove.", icon: "🎁", monthlySales: "$96K", customers: 410, fromPrice: "$22", platform: "shopify", shopifyDomain: "giftease-corp.myshopify.com" },
+  { id: "sf_04", merchant: "Artisan Lane", storeType: "Retail Store", aisle: "local-brands", tier: "rent", tagline: "A rotating shelf of neighborhood makers.", icon: "🧶", monthlySales: "$12K", customers: 530, fromPrice: "$18", platform: "native" },
+  { id: "sf_05", merchant: "SupplyHub Co.", storeType: "B2B Store", aisle: "packaging", tier: "lease", tagline: "Boxes, mailers, and custom packaging at volume.", icon: "📦", monthlySales: "$117K", customers: 290, fromPrice: "$0.42", platform: "shopify", shopifyDomain: "supplyhub-bny.myshopify.com" },
+  { id: "sf_06", merchant: "BNY Metalworks", storeType: "B2B Store", aisle: "fabrication", tier: "lease", tagline: "CNC, laser cutting, and short-run fabrication.", icon: "🔩", monthlySales: "$84K", customers: 150, fromPrice: "$35", platform: "native" },
+  { id: "sf_07", merchant: "Circuit & Co.", storeType: "Retail Store", aisle: "electronics", tier: "rent", tagline: "Components, assemblies, and same-week repair.", icon: "🔌", monthlySales: "$51K", customers: 720, fromPrice: "$3.10", platform: "shopify", shopifyDomain: "circuit-and-co-bny.myshopify.com" },
+  { id: "sf_08", merchant: "Harbor Lines", storeType: "B2B Store", aisle: "logistics", tier: "lease", tagline: "Same-day courier and borough-wide freight.", icon: "🚚", monthlySales: "$63K", customers: 340, fromPrice: "$12", platform: "native" },
 ];
 
 export function storefrontsByAisle(slug: string): MallStorefront[] {

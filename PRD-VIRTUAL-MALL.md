@@ -262,6 +262,41 @@ The take-rate *drops* as commitment *rises* — that asymmetry is the upgrade
 engine. In v1, "Own" is sold as a tenant upgrade path; its on-chain mechanics are
 a later phase (§10).
 
+### Every storefront is an integrated Shopify store
+
+The unit being rented, leased, or owned is not a page template — it is a
+**fully provisioned Shopify store, integrated into the mall.** GrahmOS is the
+mall layer (traffic, aisles, Directions Mode, concierge, quotes, leases);
+Shopify is the per-tenant commerce engine (catalog, checkout, inventory,
+fulfillment, taxes). This is deliberate: we sell *commercial real estate plus
+a turnkey business*, and we never rebuild commerce plumbing Shopify already
+runs at scale.
+
+How the tiers map:
+
+| Tier | Shopify arrangement |
+|---|---|
+| **Rent** | GrahmOS-provisioned store on a GrahmOS Shopify account; templated theme; tenant operates it through Tenant Studio |
+| **Lease** | Same provisioned store with custom theme + apps; tenant gets direct Shopify admin access alongside Tenant Studio |
+| **Own** | The Shopify store (and its domain) transfers to the tenant outright; GrahmOS keeps the mall integration + take-rate via the integration contract |
+
+Integration surfaces:
+- **Storefront API** — pulls each store's live catalog into the mall (aisle
+  pages, Products catalog, Directions Mode stops, concierge product matches).
+- **Admin API + webhooks** — orders, inventory, and payout events flow back
+  into mall data (Orders page, Tenant Studio analytics, agent loop, take-rate
+  metering).
+- **Provisioning** — the Tenant Onboarding agent creates the store from the
+  storefront application (theme by aisle, catalog upload, GrahmOS integration
+  app installed) — "GrahmOS builds your storefront" is literal.
+- **Checkout** — v1 buyers check out per-store via Shopify; the mall cart is
+  an orchestration layer on top. The escrow rails of §11.3 apply to B2B
+  quote-driven orders, which settle outside Shopify checkout.
+
+The mall remains the system of record for *tenancy* (tier, lease terms, unit,
+deed-later); Shopify is the system of record for *commerce* (products,
+orders, fulfillment). `storefronts` rows carry `platform` + `shopifyDomain`.
+
 ### Revenue streams
 1. **Occupancy revenue** — rent (monthly), leases (annual), unit sales (one-time + resale royalty). Predictable, real-estate-style.
 2. **Transaction take-rate** — inverse to tenancy tier (rent 8–12% → own 2–4%): the more a brand commits, the more margin they keep.
@@ -481,7 +516,7 @@ never receives or controls customer funds. Re-verify per state with counsel
 before Phase 3+.
 
 ### 11.4 Data model (extends `db/schema.sql`)
-Keep existing tables; add: `storefronts` (tenancy tier, unit location/aisle, lease terms, deed token id), `companies`, `channel_partners`, `pricing_rules`, `carts` + `cart_events`, `quotes` + `quote_items`, `sourcing_requests`, `agent_tasks`, `agent_conversations`, `rewards_ledger`, `analytics_events`, `routes` (Directions Mode route cards: intent, steps, completion state), `deeds` (token id, owner, unit, royalty terms — Phase 4). Mirror the staff-workflow subset to Airtable.
+Keep existing tables; add: `storefronts` (tenancy tier, unit location/aisle, lease terms, deed token id, `platform` + `shopifyDomain` + Shopify access scopes per §8), `companies`, `channel_partners`, `pricing_rules`, `carts` + `cart_events`, `quotes` + `quote_items`, `sourcing_requests`, `agent_tasks`, `agent_conversations`, `rewards_ledger`, `analytics_events`, `routes` (Directions Mode route cards: intent, steps, completion state), `deeds` (token id, owner, unit, royalty terms — Phase 4). Mirror the staff-workflow subset to Airtable.
 
 ---
 

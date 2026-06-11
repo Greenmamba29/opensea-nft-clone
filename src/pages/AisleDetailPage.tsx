@@ -61,7 +61,14 @@ export default function AisleDetailPage() {
                   {store.icon}
                 </div>
                 <div>
-                  <div className="font-black group-hover:text-[var(--os-blue)] transition-colors">{store.merchant}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black group-hover:text-[var(--os-blue)] transition-colors">{store.merchant}</span>
+                    {store.platform === 'shopify' && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-[var(--os-green)]/30 bg-[var(--os-green)]/15 text-[var(--os-green)]">
+                        🛍 Shopify
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs font-bold text-[var(--os-text-tertiary)] uppercase tracking-wider">
                     {store.storeType} · {TIER_LABELS[store.tier]}
                   </div>

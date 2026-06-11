@@ -161,3 +161,26 @@ export function submitQuote(
 export function listQuotes(): Promise<{ quotes: QuoteRecord[] }> {
   return api("/api/quotes");
 }
+
+/* ── Shopify catalog (per-tenant commerce engine) ──────────────────── */
+
+export interface ShopifyCatalogProduct {
+  id: string;
+  name: string;
+  price: number;
+  unit: string;
+  image: null;
+  imageUrl?: string;
+  url?: string;
+  source: "shopify" | "demo";
+}
+
+export interface ShopifyCatalog {
+  source: "shopify" | "demo";
+  products: ShopifyCatalogProduct[];
+}
+
+/** Live (or demo-fallback) product catalog for a storefront's Shopify store. */
+export function getShopifyCatalog(domain: string): Promise<ShopifyCatalog> {
+  return api(`/api/shopify/catalog?domain=${encodeURIComponent(domain)}`);
+}

@@ -26,6 +26,9 @@ export default async (req: Request, _context: Context) => {
       status: (a.status as Storefront["status"]) ?? "new",
       assignedAgent: a.assignedAgent,
       monthlyLease: a.monthlyLease,
+      // Every provisioned storefront gets a GrahmOS-managed Shopify store;
+      // the domain is assigned during onboarding (not yet for applications).
+      platform: "shopify",
     }));
     return json({ storefronts: [...appliedAsStorefronts, ...STOREFRONTS] });
   }

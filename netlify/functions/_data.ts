@@ -44,6 +44,11 @@ export interface Storefront {
   status: "new" | "under_review" | "documents_pending" | "shortlisted" | "active";
   assignedAgent: string;
   monthlyLease: number;
+  /** Commerce engine behind this storefront. Every mall unit is a Shopify
+   *  store provisioned by GrahmOS; 'native' marks legacy/demo-only units. */
+  platform: "shopify" | "native";
+  /** myshopify.com domain for platform === 'shopify' storefronts. */
+  shopifyDomain?: string;
 }
 
 export interface Product {
@@ -171,14 +176,14 @@ export const AISLES: Aisle[] = [
 ];
 
 export const STOREFRONTS: Storefront[] = [
-  { id: "sf_01", merchant: "Brewed Awakenings", storeType: "Retail Store", category: "Food & Beverage", aisle: "food-beverage", tier: "lease", status: "under_review", assignedAgent: "Ava Reynolds", monthlyLease: 359 },
-  { id: "sf_02", merchant: "Stationery House", storeType: "Retail Store", category: "Office Supplies", aisle: "office-services", tier: "rent", status: "documents_pending", assignedAgent: "Liam Chen", monthlyLease: 179 },
-  { id: "sf_03", merchant: "Giftease Corp", storeType: "Brand Store", category: "Corporate Gifting", aisle: "apparel-merch", tier: "own", status: "shortlisted", assignedAgent: "Maya Kapoor", monthlyLease: 899 },
-  { id: "sf_04", merchant: "Artisan Lane", storeType: "Retail Store", category: "Local Makers", aisle: "local-brands", tier: "rent", status: "new", assignedAgent: "Noah Williams", monthlyLease: 59 },
-  { id: "sf_05", merchant: "SupplyHub Co.", storeType: "B2B Store", category: "B2B Sourcing", aisle: "packaging", tier: "lease", status: "under_review", assignedAgent: "Ava Reynolds", monthlyLease: 359 },
-  { id: "sf_06", merchant: "BNY Metalworks", storeType: "B2B Store", category: "Fabrication", aisle: "fabrication", tier: "lease", status: "active", assignedAgent: "Liam Chen", monthlyLease: 459 },
-  { id: "sf_07", merchant: "Circuit & Co.", storeType: "Retail Store", category: "Electronics", aisle: "electronics", tier: "rent", status: "active", assignedAgent: "Maya Kapoor", monthlyLease: 219 },
-  { id: "sf_08", merchant: "Harbor Lines", storeType: "B2B Store", category: "Logistics & Delivery", aisle: "logistics", tier: "lease", status: "active", assignedAgent: "Noah Williams", monthlyLease: 389 },
+  { id: "sf_01", merchant: "Brewed Awakenings", storeType: "Retail Store", category: "Food & Beverage", aisle: "food-beverage", tier: "lease", status: "under_review", assignedAgent: "Ava Reynolds", monthlyLease: 359, platform: "shopify", shopifyDomain: "brewed-awakenings-bny.myshopify.com" },
+  { id: "sf_02", merchant: "Stationery House", storeType: "Retail Store", category: "Office Supplies", aisle: "office-services", tier: "rent", status: "documents_pending", assignedAgent: "Liam Chen", monthlyLease: 179, platform: "native" },
+  { id: "sf_03", merchant: "Giftease Corp", storeType: "Brand Store", category: "Corporate Gifting", aisle: "apparel-merch", tier: "own", status: "shortlisted", assignedAgent: "Maya Kapoor", monthlyLease: 899, platform: "shopify", shopifyDomain: "giftease-corp.myshopify.com" },
+  { id: "sf_04", merchant: "Artisan Lane", storeType: "Retail Store", category: "Local Makers", aisle: "local-brands", tier: "rent", status: "new", assignedAgent: "Noah Williams", monthlyLease: 59, platform: "native" },
+  { id: "sf_05", merchant: "SupplyHub Co.", storeType: "B2B Store", category: "B2B Sourcing", aisle: "packaging", tier: "lease", status: "under_review", assignedAgent: "Ava Reynolds", monthlyLease: 359, platform: "shopify", shopifyDomain: "supplyhub-bny.myshopify.com" },
+  { id: "sf_06", merchant: "BNY Metalworks", storeType: "B2B Store", category: "Fabrication", aisle: "fabrication", tier: "lease", status: "active", assignedAgent: "Liam Chen", monthlyLease: 459, platform: "native" },
+  { id: "sf_07", merchant: "Circuit & Co.", storeType: "Retail Store", category: "Electronics", aisle: "electronics", tier: "rent", status: "active", assignedAgent: "Maya Kapoor", monthlyLease: 219, platform: "shopify", shopifyDomain: "circuit-and-co-bny.myshopify.com" },
+  { id: "sf_08", merchant: "Harbor Lines", storeType: "B2B Store", category: "Logistics & Delivery", aisle: "logistics", tier: "lease", status: "active", assignedAgent: "Noah Williams", monthlyLease: 389, platform: "native" },
 ];
 
 export const PRODUCTS: Product[] = [

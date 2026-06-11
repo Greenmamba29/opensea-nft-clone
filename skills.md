@@ -46,8 +46,8 @@ the others.
 | **WorkOS AuthKit** | Identity, SSO, sessions | `@workos-inc/authkit-react` (client) + JWKS verify in `_auth.ts` (server) |
 | **Claude (Anthropic)** | The agent brain | `@anthropic-ai/sdk`, `claude-opus-4-8` |
 | **Netlify** | Frontend host + Functions + Git CI | `netlify.toml`, `@netlify/vite-plugin`, `.github/workflows/deploy.yml` |
-| **Remotion** | Hero "video" | `remotion` + `@remotion/player` |
 | **recharts** | Dashboard data viz | `MallOSPage.tsx` |
+| **Shopify** | Per-tenant commerce engine — every storefront is an integrated Shopify store (PRD §8) | `netlify/functions/shopify-catalog.ts` (Storefront API; demo fallback); Admin API + webhooks planned |
 | **Neon Postgres** *(planned)* | System of record | schema in `db/schema.sql` |
 | **Airtable** *(planned)* | Staff ops mirror | `src/lib/airtable.ts` stub |
 | **Cloudflare** *(planned)* | Stateful agent layer | Durable Objects + Workflows |
