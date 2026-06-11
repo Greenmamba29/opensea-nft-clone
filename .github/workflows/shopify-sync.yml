@@ -1,0 +1,79 @@
+name: Shopify catalog sync
+
+# The Shopify-store loop: pull each integrated storefront's live catalog and
+# refresh netlify/functions/_shopify-snapshot.ts. If the catalog changed, the
+# bot commits the new snapshot and dispatches the deploy workflow (pushes made
+# with GITHUB_TOKEN don't fire `push`-triggered workflows, so we dispatch).
+#
+# Required repo secret (either one):
+#   SHOPIFY_STOREFRONT_API_TOKEN — preferred; Shopify admin → Develop apps →
+#                                  Storefront API access token
+#   SHOPIFY_ADMIN_API_TOKEN      — fallback; Admin API access token
+# Optional repo variable:
+#   SHOPIFY_SYNC_DOMAINS — comma-separated myshopify.com domains
+#                          (default: grahmos-marketbny.myshopify.com)
+#
+# Until a token secret exists this workflow runs and skips gracefully.
+
+on:
+  schedule:
+    - cron: "0 10 * * *" # daily, 10:00 UTC (~6am ET)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: shopify-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Sync catalog snapshot
+        id: sync
+        env:
+          SHOPIFY_STOREFRONT_API_TOKEN: ${{ secrets.SHOPIFY_STOREFRONT_API_TOKEN }}
+          SHOPIFY_ADMIN_API_TOKEN: ${{ secrets.SHOPIFY_ADMIN_API_TOKEN }}
+          SHOPIFY_SYNC_DOMAINS: ${{ vars.SHOPIFY_SYNC_DOMAINS }}
+        run: |
+          set +e
+          node scripts/sync-shopify-snapshot.mjs
+          code=$?
+          set -e
+          if [ "$code" = "78" ]; then
+            echo "skipped=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::No Shopify token secret configured — sync skipped."
+            exit 0
+          fi
+          exit $code
+
+      - name: Commit and push if changed
+        id: commit
+        if: steps.sync.outputs.skipped != 'true'
+        run: |
+          if git diff --quiet -- netlify/functions/_shopify-snapshot.ts; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Snapshot unchanged — nothing to commit."
+            exit 0
+          fi
+          git config user.name "grahmos-sync[bot]"
+          git config user.email "noreply@grahmos.com"
+          git add netlify/functions/_shopify-snapshot.ts
+          git commit -m "chore: sync Shopify catalog snapshot"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger deploy
+        if: steps.commit.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref master

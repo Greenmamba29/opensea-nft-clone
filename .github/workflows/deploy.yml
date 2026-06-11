@@ -14,6 +14,9 @@ on:
   push:
     branches: [master]
   pull_request:
+  # Lets the shopify-sync workflow trigger a deploy after a bot commit
+  # (pushes made with GITHUB_TOKEN don't fire `push` workflows on their own).
+  workflow_dispatch:
 
 concurrency:
   group: deploy-${{ github.ref }}
