@@ -5,6 +5,7 @@ import './styles/globals.css'
 import AuthProvider from './auth/AuthProvider'
 import ProtectedRoute from './auth/ProtectedRoute'
 import Layout from './components/Layout'
+import PageTransition from './components/PageTransition'
 
 // Route-level code splitting: each surface loads only when visited.
 const LandingPage = lazy(() => import('./pages/grahmos/LandingPage'))
@@ -45,15 +46,17 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <Suspense fallback={<RouteFallback />}>
           <Routes>
             {/* GrahmOS public marketing site */}
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<PageTransition><LandingPage /></PageTransition>} />
 
             {/* Operator console — auth + role gated */}
             <Route
               path="/os"
               element={
-                <ProtectedRoute roles={["operator", "agent"]}>
-                  <MallOSPage />
-                </ProtectedRoute>
+                <PageTransition>
+                  <ProtectedRoute roles={["operator", "agent"]}>
+                    <MallOSPage />
+                  </ProtectedRoute>
+                </PageTransition>
               }
             />
 

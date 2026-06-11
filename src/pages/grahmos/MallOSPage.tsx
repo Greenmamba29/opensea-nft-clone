@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Bell,
@@ -158,14 +158,16 @@ const FALLBACK_APPS: AppRow[] = [
   { merchant: "SupplyHub Co.", type: "B2B Store", category: "B2B Sourcing", status: "Under Review", statusVariant: "warning", agent: "Ava Reynolds" },
 ];
 
-const NAV = [
+// Nav items with a real destination get `to`; the rest are honestly marked
+// "Soon" and rendered non-interactive (no more dead href="#" anchors).
+const NAV: { icon: typeof Home; label: string; active?: boolean; to?: string }[] = [
   { icon: Home, label: "Overview", active: true },
-  { icon: Store, label: "Storefronts" },
+  { icon: Store, label: "Storefronts", to: "/mall/stores" },
   { icon: ClipboardList, label: "Lease Inventory" },
   { icon: MapPin, label: "Mall Placement" },
   { icon: ShoppingBag, label: "Merchants" },
   { icon: Users, label: "Buyers" },
-  { icon: FileText, label: "Quotes" },
+  { icon: FileText, label: "Quotes", to: "/mall/quotes" },
   { icon: Search, label: "Sourcing" },
   { icon: Bot, label: "Agents" },
   { icon: ChartNoAxesCombined, label: "Analytics" },
@@ -183,6 +185,28 @@ export default function MallOSPage() {
   const [dataSource, setDataSource] = useState<"loading" | "live" | "fallback">("loading");
   const [quoteOpen, setQuoteOpen] = useState(false);
 
+  // Search filters the tenant-application table; Ctrl/Cmd+K focuses it.
+  const [searchQ, setSearchQ] = useState("");
+  const [showAllApps, setShowAllApps] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  const q = searchQ.trim().toLowerCase();
+  const filteredApps = q
+    ? apps.filter((a) =>
+        [a.merchant, a.type, a.category, a.status, a.agent].some((v) => v.toLowerCase().includes(q))
+      )
+    : apps;
+  const visibleApps = showAllApps || q ? filteredApps : filteredApps.slice(0, 5);
+
   useEffect(() => {
     let alive = true;
     getMallOverview()
@@ -197,14 +221,18 @@ export default function MallOSPage() {
       .then((r) => {
         if (!alive) return;
         setApps(
-          r.storefronts.map((s) => ({
-            merchant: s.merchant,
-            type: s.storeType,
-            category: s.category,
-            status: STATUS_MAP[s.status].label,
-            statusVariant: STATUS_MAP[s.status].variant,
-            agent: s.assignedAgent,
-          }))
+          r.storefronts.map((s) => {
+            // Status arrives as raw DB text — guard values outside the map.
+            const mapped = STATUS_MAP[s.status] ?? { label: s.status, variant: "secondary" as const };
+            return {
+              merchant: s.merchant,
+              type: s.storeType,
+              category: s.category,
+              status: mapped.label,
+              statusVariant: mapped.variant,
+              agent: s.assignedAgent,
+            };
+          })
         );
       })
       .catch(() => {});
@@ -233,21 +261,37 @@ export default function MallOSPage() {
         </Link>
         <div className="px-5 pb-2 pt-3 text-[10px] font-bold uppercase tracking-wider text-white/40">Main</div>
         <nav className="flex-1 space-y-0.5 px-3">
-          {NAV.map((n) => (
-            <a
-              key={n.label}
-              href="#"
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                n.active ? "bg-grahmos-purple text-white" : "hover:bg-white/5 hover:text-white"
-              }`}
-            >
-              <n.icon className="h-4 w-4" /> {n.label}
-            </a>
-          ))}
+          {NAV.map((n) =>
+            n.active ? (
+              <span
+                key={n.label}
+                className="flex items-center gap-3 rounded-lg bg-grahmos-purple px-3 py-2.5 text-sm font-medium text-white"
+              >
+                <n.icon className="h-4 w-4" /> {n.label}
+              </span>
+            ) : n.to ? (
+              <Link
+                key={n.label}
+                to={n.to}
+                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-white/5 hover:text-white"
+              >
+                <n.icon className="h-4 w-4" /> {n.label}
+              </Link>
+            ) : (
+              <span
+                key={n.label}
+                className="flex cursor-default items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/40"
+                title="Coming soon"
+              >
+                <n.icon className="h-4 w-4" /> {n.label}
+                <span className="ml-auto rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide">Soon</span>
+              </span>
+            )
+          )}
           <div className="px-2 pb-1 pt-4 text-[10px] font-bold uppercase tracking-wider text-white/40">Configuration</div>
-          <a href="#" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-white/5 hover:text-white">
+          <Link to="/mall/settings" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-white/5 hover:text-white">
             <Settings className="h-4 w-4" /> Settings
-          </a>
+          </Link>
         </nav>
         <div className="m-4 rounded-xl bg-gradient-to-br from-grahmos-purple-deep to-grahmos-purple p-4">
           <Sparkles className="mb-2 h-5 w-5 text-grahmos-gold" />
@@ -266,8 +310,11 @@ export default function MallOSPage() {
           <div className="relative max-w-md flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
+              ref={searchRef}
+              value={searchQ}
+              onChange={(e) => setSearchQ(e.target.value)}
               className="h-10 w-full rounded-lg pl-9 pr-12 text-sm"
-              placeholder="Search merchants, leases, quotes, agents..."
+              placeholder="Filter tenant applications…"
             />
             <kbd className="absolute right-3 top-1/2 -translate-y-1/2 rounded border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground">
               ⌘K
@@ -290,12 +337,12 @@ export default function MallOSPage() {
             <Button variant="gold" size="sm" onClick={() => setQuoteOpen(true)}>
               <Plus /> New Quote
             </Button>
-            <button className="relative rounded-lg bg-transparent p-2 hover:bg-secondary">
-              <Bell className="h-5 w-5 text-muted-foreground" />
-              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-bold text-white">
-                12
-              </span>
-            </button>
+            <span
+              className="relative rounded-lg p-2 text-muted-foreground/50"
+              title="Notifications — coming soon"
+            >
+              <Bell className="h-5 w-5" />
+            </span>
             <div className="group relative flex cursor-pointer items-center gap-2.5">
               <Avatar name={displayName} />
               <div className="hidden text-left sm:block">
@@ -468,7 +515,9 @@ export default function MallOSPage() {
             <Card>
               <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle>Recent Tenant Applications</CardTitle>
-                <Button variant="ghost" size="sm">View All</Button>
+                <Button variant="ghost" size="sm" onClick={() => setShowAllApps((v) => !v)}>
+                  {showAllApps ? "Show Recent" : `View All (${filteredApps.length})`}
+                </Button>
               </CardHeader>
               <CardContent className="px-2">
                 <Table>
@@ -482,7 +531,7 @@ export default function MallOSPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {apps.map((a) => (
+                    {visibleApps.map((a) => (
                       <TableRow key={a.merchant}>
                         <TableCell className="flex items-center gap-2 font-semibold">
                           <Avatar name={a.merchant} className="h-7 w-7" /> {a.merchant}
@@ -502,7 +551,7 @@ export default function MallOSPage() {
             <Card>
               <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle>Featured Placement Inventory</CardTitle>
-                <Button variant="ghost" size="sm">View Inventory</Button>
+                <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground/60" title="Coming soon">Soon</span>
               </CardHeader>
               <CardContent className="space-y-3">
                 {ov.placements.map((p) => {
@@ -529,7 +578,7 @@ export default function MallOSPage() {
             <Card>
               <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle>Agent Queue / White-Glove Concierge</CardTitle>
-                <Button variant="ghost" size="sm">View All</Button>
+                <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground/60" title="Coming soon">Soon</span>
               </CardHeader>
               <CardContent className="space-y-3">
                 {ov.agentQueue.map((q) => {
@@ -620,8 +669,8 @@ export default function MallOSPage() {
                       <span><b>Opportunity Areas</b><br /><span className="text-xs text-muted-foreground">Makers' District, B2B Exchange</span></span>
                     </div>
                   </div>
-                  <Button variant="outline" className="mt-4 w-full" size="sm">
-                    <ChartNoAxesCombined /> View Heatmap
+                  <Button variant="outline" className="mt-4 w-full" size="sm" disabled title="Coming soon">
+                    <ChartNoAxesCombined /> View Heatmap — Soon
                   </Button>
                 </div>
               </div>

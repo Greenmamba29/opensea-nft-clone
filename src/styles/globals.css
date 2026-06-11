@@ -120,3 +120,37 @@ button {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ── Immersive page transitions (PageTransition.tsx) ─────────────────
+   Each route change zooms INTO the new page from the point the user
+   clicked (--zoom-x/--zoom-y set per-navigation). A soft depth blur
+   sells the dive; perspective adds a hint of 3D travel. */
+.page-zoom-enter {
+  animation: page-zoom-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: var(--zoom-x, 50%) var(--zoom-y, 38%);
+  will-change: transform, opacity, filter;
+  min-height: 100%;
+}
+
+@keyframes page-zoom-in {
+  0% {
+    opacity: 0;
+    transform: perspective(1200px) scale(0.9) translateZ(-60px);
+    filter: blur(10px) saturate(1.15);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(2px) saturate(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1200px) scale(1) translateZ(0);
+    filter: blur(0) saturate(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-zoom-enter {
+    animation: none;
+  }
+}

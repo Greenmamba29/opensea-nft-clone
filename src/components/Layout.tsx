@@ -4,6 +4,7 @@ import Header from './Header'
 import Footer from './Footer'
 import Concierge from './grahmos/Concierge'
 import RouteCard from './grahmos/RouteCard'
+import PageTransition from './PageTransition'
 import { RouteProvider } from '@/lib/routeContext'
 
 export default function Layout() {
@@ -12,8 +13,10 @@ export default function Layout() {
       <Sidebar />
       <div className="flex flex-col ml-[52px] min-h-screen">
         <Header />
-        <main className="flex-1 pb-9">
-          <Outlet />
+        <main className="flex-1 overflow-x-clip pb-9">
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </main>
         <Footer />
       </div>

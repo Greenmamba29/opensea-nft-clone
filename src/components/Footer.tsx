@@ -19,10 +19,9 @@ export default function Footer() {
 
       {/* Center */}
       <div className="flex items-center gap-4">
-        <a href="#" className="hover:text-[var(--os-text)]">Terms of Service</a>
-        <a href="#" className="hover:text-[var(--os-text)]">Privacy Policy</a>
-        <span className="text-sm">👾</span>
-        <span className="text-sm">𝕏</span>
+        <Link to="/mall/support" className="hover:text-[var(--os-text)]">Support</Link>
+        <Link to="/mall/quotes" className="hover:text-[var(--os-text)]">Request a Quote</Link>
+        <span className="text-sm">✦</span>
       </div>
 
       {/* Right */}
@@ -33,10 +32,7 @@ export default function Footer() {
         </div>
         <Link to="/mall/support" className="hover:text-[var(--os-text)]">Support</Link>
         <div className="flex items-center gap-3 border-l border-[var(--os-border)] pl-4 h-full">
-          <div className="flex items-center gap-1 cursor-pointer hover:text-[var(--os-text)]">
-            <span>USD</span>
-            <span>▼</span>
-          </div>
+          <span className="flex items-center gap-1" title="Multi-currency coming soon">USD</span>
         </div>
       </div>
     </footer>

@@ -69,33 +69,32 @@ export default function QuotesPage() {
       notes: notes.trim() || undefined,
     };
 
-    let id = 'q_' + Math.floor(1000 + Math.random() * 9000);
-    let message = 'Quote request received — an GrahmOS agent will price it shortly.';
     try {
       const res = await submitQuote({ request });
-      id = res.quote.id;
-      message = res.message;
+      // Only record + confirm when the server actually accepted the RFQ.
+      setQuotes((prev) => [
+        {
+          id: res.quote.id,
+          description: request.description,
+          quantity: request.quantity,
+          unit: request.unit,
+          aisle: request.aisle ?? '',
+          status: 'submitted',
+          createdAt: new Date().toISOString().slice(0, 10),
+        },
+        ...prev,
+      ]);
+      setConfirmation(res.message);
+      setDescription('');
+      setNotes('');
     } catch {
-      // Demo mode: API requires auth — confirm optimistically.
-      message = 'Quote request saved (demo) — an GrahmOS agent will price it shortly.';
+      // Be honest: nothing was persisted. Tell the user it didn't go through.
+      setConfirmation(
+        'error:We couldn’t submit your request — please sign in, or try again in a moment.'
+      );
+    } finally {
+      setSubmitting(false);
     }
-
-    setQuotes((prev) => [
-      {
-        id,
-        description: request.description,
-        quantity: request.quantity,
-        unit: request.unit,
-        aisle: request.aisle ?? '',
-        status: 'submitted',
-        createdAt: new Date().toISOString().slice(0, 10),
-      },
-      ...prev,
-    ]);
-    setConfirmation(message);
-    setDescription('');
-    setNotes('');
-    setSubmitting(false);
   }
 
   return (
@@ -191,12 +190,22 @@ export default function QuotesPage() {
               {submitting ? 'Submitting…' : 'Submit quote request'}
             </button>
 
-            {confirmation && (
-              <div className="flex items-center gap-3 bg-[var(--os-green)]/10 border border-[var(--os-green)]/30 text-[var(--os-green)] rounded-xl px-4 py-3 text-sm font-bold">
-                <span>✓</span>
-                <span>{confirmation}</span>
-              </div>
-            )}
+            {confirmation && (() => {
+              const isError = confirmation.startsWith('error:');
+              const text = isError ? confirmation.slice(6) : confirmation;
+              return (
+                <div
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-bold border ${
+                    isError
+                      ? 'bg-[var(--os-red)]/10 border-[var(--os-red)]/30 text-[var(--os-red)]'
+                      : 'bg-[var(--os-green)]/10 border-[var(--os-green)]/30 text-[var(--os-green)]'
+                  }`}
+                >
+                  <span>{isError ? '⚠' : '✓'}</span>
+                  <span>{text}</span>
+                </div>
+              );
+            })()}
           </div>
         </form>
 

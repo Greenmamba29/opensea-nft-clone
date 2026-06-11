@@ -4,7 +4,8 @@ import { AISLES, MALL_PRODUCTS, aisleBySlug } from '@/lib/mallData';
 
 export default function ProductsPage() {
   const [searchParams] = useSearchParams();
-  const [query, setQuery] = useState('');
+  // Seed search from ?q= so the global header search lands pre-filtered.
+  const [query, setQuery] = useState(() => searchParams.get('q') ?? '');
   const [activeAisle, setActiveAisle] = useState<string | null>(
     () => aisleBySlug(searchParams.get('aisle') ?? undefined)?.slug ?? null
   );
@@ -91,7 +92,7 @@ export default function ProductsPage() {
               return (
                 <Link
                   key={product.id}
-                  to="/mall/collection"
+                  to={`/mall/product/${product.id}`}
                   className="group bg-[var(--os-surface)] border border-[var(--os-border)] rounded-2xl overflow-hidden hover:border-[var(--os-blue)] hover:-translate-y-1 transition-all"
                 >
                   <div className="aspect-[4/3] flex items-center justify-center text-6xl" style={{ background: product.gradient }}>

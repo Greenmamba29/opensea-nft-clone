@@ -37,12 +37,15 @@ export function useGrahmOSAuth(): GrahmOSAuthValue {
 export const WORKOS_CLIENT_ID: string | undefined = import.meta.env.VITE_WORKOS_CLIENT_ID;
 export const AUTH_ENABLED = Boolean(WORKOS_CLIENT_ID);
 
-/** Map a WorkOS user → an GrahmOS role. In production this would come from
- *  WorkOS Organization membership / role metadata; here we derive a sensible
- *  default and allow an email-domain override for the operator console. */
+/** Map a WorkOS user → a GrahmOS role. SECURITY: with real auth, privileged
+ *  roles must come from WorkOS Organization membership / role metadata — never
+ *  from email text anyone can self-select (attacker+operator@gmail.com). The
+ *  +tag heuristic only applies in demo mode (no WorkOS configured); the server
+ *  (netlify/functions/_auth.ts) enforces the same rule, so a spoofed client
+ *  role unlocks nothing real. */
 export function deriveRole(email: string | undefined | null): GrahmOSRole {
-  if (!email) return "buyer";
-  if (email.endsWith("@grahmos.market") || email.includes("+operator")) return "operator";
+  if (!email || AUTH_ENABLED) return "buyer";
+  if (email.includes("+operator")) return "operator";
   if (email.includes("+seller")) return "seller";
   if (email.includes("+partner")) return "channel_partner";
   if (email.includes("+agent")) return "agent";

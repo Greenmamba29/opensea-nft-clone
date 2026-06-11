@@ -39,12 +39,17 @@ function getJwks() {
   return jwks;
 }
 
+// SECURITY: privileged roles must come from a verified claim, never from the
+// email text — anyone can register attacker+operator@gmail.com. The email
+// heuristic is a DEMO convenience only; with real WorkOS auth and no role
+// claim, everyone defaults to buyer until org/role assignment is wired.
 function deriveRole(email?: string): string {
-  if (!email) return "buyer";
-  if (email.endsWith("@grahmos.market") || email.includes("+operator")) return "operator";
-  if (email.includes("+seller")) return "seller";
-  if (email.includes("+partner")) return "channel_partner";
-  if (email.includes("+agent")) return "agent";
+  if (DEMO_MODE && email) {
+    if (email.includes("+operator")) return "operator";
+    if (email.includes("+seller")) return "seller";
+    if (email.includes("+partner")) return "channel_partner";
+    if (email.includes("+agent")) return "agent";
+  }
   return "buyer";
 }
 

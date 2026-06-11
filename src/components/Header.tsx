@@ -1,12 +1,41 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import React, { useEffect, useRef, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useRoute } from "@/lib/routeContext";
+import { useGrahmOSAuth } from "@/auth/auth-context";
 
 export default function Header() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const { route } = useRoute();
+  const { user, signIn, signOut } = useGrahmOSAuth();
   const guided = pathname.startsWith("/mall/directions");
   const routeActive = Boolean(route);
+
+  // Search routes to the Products page with the query applied. "K" focuses it.
+  const [q, setQ] = useState("");
+  const searchRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const typing = target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable;
+      if (!typing && e.key.toLowerCase() === "k" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  function submitSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const term = q.trim();
+    if (term) {
+      navigate(`/mall/products?q=${encodeURIComponent(term)}`);
+      setQ("");
+      searchRef.current?.blur();
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 h-14 bg-os-bg/80 backdrop-blur-md flex items-center px-4 border-b border-[var(--os-border)] gap-4">
@@ -45,13 +74,16 @@ export default function Header() {
         </Link>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex-1 max-w-[600px] relative">
+      {/* Search — routes to /mall/products?q=… */}
+      <form onSubmit={submitSearch} className="flex-1 max-w-[600px] relative">
         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-[var(--os-text-tertiary)]">
           <span className="text-sm">🔍</span>
         </div>
         <input
+          ref={searchRef}
           type="text"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
           placeholder="Search storefronts, products, or aisles"
           className="w-full h-10 pl-10 pr-10 bg-[var(--os-surface-2)] border border-[var(--os-border)] rounded-xl focus:border-[var(--os-blue)] transition-colors text-sm"
         />
@@ -60,17 +92,26 @@ export default function Header() {
             K
           </kbd>
         </div>
-      </div>
+      </form>
 
       {/* Right Side Actions */}
       <div className="flex items-center ml-auto gap-3 text-sm font-semibold">
-        <button className="p-2 rounded-lg hover:bg-[var(--os-surface-2)] text-xl">
-          🔔
-        </button>
-
-        <button className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--os-blue)] hover:bg-opacity-90 transition-colors">
-          <span>Sign in</span>
-        </button>
+        {user ? (
+          <button
+            onClick={() => signOut()}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--os-surface-2)] hover:bg-[var(--os-surface-3)] transition-colors"
+            title={user.email}
+          >
+            <span>Sign out</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => signIn()}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--os-blue)] hover:bg-opacity-90 transition-colors"
+          >
+            <span>Sign in</span>
+          </button>
+        )}
       </div>
     </header>
   );

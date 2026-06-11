@@ -106,7 +106,7 @@ export default function AisleDetailPage() {
           {stores.map((store) => (
             <Link
               key={store.id}
-              to="/mall/collection"
+              to={`/mall/collection/${store.id}`}
               className="group bg-[var(--os-surface)] border border-[var(--os-border)] rounded-2xl p-6 hover:border-[var(--os-blue)] hover:-translate-y-1 transition-all"
             >
               <div className="flex items-center gap-4 mb-4">
@@ -151,7 +151,7 @@ export default function AisleDetailPage() {
               {products.map((product) => (
                 <Link
                   key={product.id}
-                  to="/mall/collection"
+                  to={`/mall/product/${product.id}`}
                   className="group flex-shrink-0 w-56 bg-[var(--os-surface)] border border-[var(--os-border)] rounded-2xl overflow-hidden hover:border-[var(--os-blue)] transition-all"
                 >
                   <div className="h-32 flex items-center justify-center text-5xl" style={{ background: product.gradient }}>
