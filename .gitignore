@@ -41,3 +41,6 @@ next-env.d.ts
 
 # Local Netlify folder
 .netlify
+
+# raw scraped corpus stays local; parsed JSON is committed
+research/bny-tenants/
