@@ -1,0 +1,10 @@
+{
+  "eval_id": 3,
+  "eval_name": "sourced-quote",
+  "prompt": "Find me a powerful Malcolm X quote about owning businesses for the mall landing page.",
+  "assertions": [
+    "The quote is traced to a named, dated primary source (speech transcript or the Autobiography), not an unsourced viral quote",
+    "Crediting line includes the source and date (e.g. 'The Ballot or the Bullet', April 3 1964)",
+    "If exact wording cannot be verified, the output says so rather than presenting an 'attributed' quote as fact"
+  ]
+}

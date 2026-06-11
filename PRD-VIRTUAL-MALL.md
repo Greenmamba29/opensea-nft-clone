@@ -435,10 +435,50 @@ surface (§4). The roster is architecture, not UI.
 
 Every agent action writes to Postgres (audit) and mirrors to Airtable (staff queue). Human agents take over any conversation through the same Durable Object — the buyer never sees a seam. High-stakes actions (discounts above threshold, deed transfers, net-terms approval) require human approval, enforced in the Worker, not the prompt.
 
-### 11.3 Payments
-- **v1 / Phase 1–2:** Stripe (cards, Connect payouts to tenants, PO/net-terms invoicing for approved B2B). Buyers pay normally.
-- **Phase 3:** Stablecoin checkout (USDC) alongside fiat (§10).
-- **Phase 4:** Deed registry and resale (§10). Wallet connect modal already exists in the scaffold, hidden until then.
+### 11.3 Payments — the exchange-partner escrow model
+
+**Organizing rule: GrahmOS never touches custody.** Crypto is purely an
+exchange integration through licensed partners; escrow is held by the partner;
+the GrahmOS workflow agent (the "agent middleman") only sends release/refund
+instructions via API. This keeps the platform out of the flow of funds — no
+money-transmitter licenses, no BitLicense, no key custody.
+
+**The agent-middleman escrow loop (every rail implements it):**
+```
+buyer pays → partner HOLDS (escrow) → GrahmOS agent verifies condition
+(delivery / quote fulfilled / inspection passed) → agent calls RELEASE
+(payout to tenant) or REFUND (back to buyer) → audit row in Postgres
+```
+
+- **v1 / Phase 1–2 — Stripe Connect (fiat + crypto-in, one partner):**
+  Connected accounts per tenant; **manual payouts** = the escrow hold (funds
+  sit in the tenant's connected balance until the agent releases). Crypto rail
+  via **Stripe Stablecoin Payments**: buyers pay USDC (Ethereum/Solana/
+  Polygon/Base), Stripe converts and settles **USD** into the same balance —
+  GrahmOS never sees the crypto, refunds return to the buyer's wallet.
+  Agent calls: `PaymentIntent.create` → verify → `payouts.create` / `refunds.create`.
+- **Phase 2+ — Escrow.com API for high-value deals** (storefront-unit/deed
+  sales, anchor leases): a licensed internet escrow agent with milestone
+  create → agree → ship → inspect → release/refund endpoints and webhooks.
+  Zero licensing burden; built for big-ticket, not checkout.
+- **Phase 3 — international tenant payouts (optional):** Airwallex
+  Payments-for-Platforms as an additional layer — its Holding Account +
+  split-release API is a true agent-released escrow primitive and pays out to
+  150+ countries. **Note (researched):** Airwallex is fiat-only — no crypto
+  exchange or on/off-ramp — so it cannot be the crypto partner; it is a
+  global-payouts add-on, redundant with Stripe for a US-first launch.
+- **Phase 4–5 — native on-chain escrow (only with tokenized equity, §10):**
+  Circle Developer-Controlled Wallets + a USDC escrow smart contract (Circle
+  publishes an agent-released escrow reference, `circlefin/arc-escrow`) with
+  the GrahmOS agent as release-approver — gated on custody counsel.
+  Deed registry and resale per §10; the scaffold's wallet modal stays hidden
+  until then.
+
+**Regulatory posture:** the licensed partner (Stripe / Escrow.com / Airwallex
+/ Circle) is always the regulated money transmitter or escrow agent of
+record; GrahmOS relies on partner-of-record + agent-of-payee structures and
+never receives or controls customer funds. Re-verify per state with counsel
+before Phase 3+.
 
 ### 11.4 Data model (extends `db/schema.sql`)
 Keep existing tables; add: `storefronts` (tenancy tier, unit location/aisle, lease terms, deed token id), `companies`, `channel_partners`, `pricing_rules`, `carts` + `cart_events`, `quotes` + `quote_items`, `sourcing_requests`, `agent_tasks`, `agent_conversations`, `rewards_ledger`, `analytics_events`, `routes` (Directions Mode route cards: intent, steps, completion state), `deeds` (token id, owner, unit, royalty terms — Phase 4). Mirror the staff-workflow subset to Airtable.
