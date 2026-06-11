@@ -1,20 +1,21 @@
 import { useEffect, useRef, useState } from "react";
-import { Headset, Send, Sparkles, X } from "lucide-react";
+import { Send, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import GrandmaPicker from "@/components/grahmos/GrandmaPicker";
 import { askConcierge } from "@/lib/api";
+import {
+  GRANDMA_CHANGED_EVENT,
+  loadChosenGrandma,
+  openGrandmaPicker,
+  useGrandma,
+} from "@/lib/grandmothers";
 import { cn } from "@/lib/utils";
 
 interface Msg {
   role: "user" | "assistant";
   content: string;
 }
-
-const GREETING: Msg = {
-  role: "assistant",
-  content:
-    "Hi! I'm your GrahmOS Concierge. I can help you find suppliers, compare quotes, source products, or lease the perfect storefront. What are you working on today?",
-};
 
 const PROMPTS = [
   "I need 500 units for my business",
@@ -23,26 +24,64 @@ const PROMPTS = [
 ];
 
 /** Floating white-glove concierge — drops onto any page. `surface` tags the
- *  current context so the agent can tailor routing. */
+ *  current context so the agent can tailor routing. The launcher is the
+ *  user's grandmother guide: the persona skin of this single concierge. */
 export default function Concierge({ surface }: { surface?: string }) {
+  const grandma = useGrandma();
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Msg[]>([GREETING]);
+  const [messages, setMessages] = useState<Msg[]>(() => [
+    { role: "assistant", content: grandma.greeting },
+  ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // First-run: when an open is requested with no stored grandma, the picker
+  // goes first and this flag opens the chat once she's chosen.
+  const pendingOpenRef = useRef(false);
+
+  function requestOpen() {
+    if (!loadChosenGrandma()) {
+      pendingOpenRef.current = true;
+      openGrandmaPicker();
+      return;
+    }
+    setOpen(true);
+  }
 
   // Allow other surfaces (e.g. the landing hero) to pop the widget open and
   // optionally pre-fill the visitor's intent: window.dispatchEvent(
   //   new CustomEvent("grahmos:open-concierge", { detail: { intent } }))
   useEffect(() => {
     const onOpen = (e: Event) => {
-      setOpen(true);
       const intent = (e as CustomEvent<{ intent?: string }>).detail?.intent;
       if (intent) setInput(intent);
+      if (!loadChosenGrandma()) {
+        pendingOpenRef.current = true;
+        openGrandmaPicker();
+        return;
+      }
+      setOpen(true);
+    };
+    const onGrandmaChanged = () => {
+      if (pendingOpenRef.current) {
+        pendingOpenRef.current = false;
+        setOpen(true);
+      }
     };
     window.addEventListener("grahmos:open-concierge", onOpen);
-    return () => window.removeEventListener("grahmos:open-concierge", onOpen);
+    window.addEventListener(GRANDMA_CHANGED_EVENT, onGrandmaChanged);
+    return () => {
+      window.removeEventListener("grahmos:open-concierge", onOpen);
+      window.removeEventListener(GRANDMA_CHANGED_EVENT, onGrandmaChanged);
+    };
   }, []);
+
+  // New grandma, fresh greeting — but never rewrite a conversation in progress.
+  useEffect(() => {
+    setMessages((m) =>
+      m.length <= 1 ? [{ role: "assistant", content: grandma.greeting }] : m
+    );
+  }, [grandma.id, grandma.greeting]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -56,10 +95,11 @@ export default function Concierge({ surface }: { surface?: string }) {
     setInput("");
     setLoading(true);
     try {
-      const { reply } = await askConcierge(
-        next.filter((m) => m !== GREETING),
-        surface
-      );
+      // next[0] is always her greeting — keep it out of the model transcript.
+      const { reply } = await askConcierge(next.slice(1), surface, {
+        name: grandma.name,
+        style: grandma.style,
+      });
       setMessages((m) => [...m, { role: "assistant", content: reply }]);
     } catch {
       setMessages((m) => [
@@ -81,15 +121,28 @@ export default function Concierge({ surface }: { surface?: string }) {
         <div className="mb-3 flex h-[30rem] w-[22rem] flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
           {/* Header */}
           <div className="flex items-center gap-3 bg-gradient-to-r from-grahmos-purple-deep to-grahmos-purple px-4 py-3 text-white">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/15">
-              <Sparkles className="h-4 w-4 text-grahmos-gold-light" />
+            <span
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg"
+              style={{
+                backgroundColor: `${grandma.accentColor}33`,
+                boxShadow: `inset 0 0 0 1.5px ${grandma.accentColor}`,
+              }}
+            >
+              {grandma.emoji}
             </span>
-            <div className="flex-1">
-              <div className="text-sm font-bold leading-tight">GrahmOS Concierge</div>
-              <div className="text-[11px] text-white/70">
-                <span className="text-emerald-300">●</span> White-glove · Human + AI
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-sm font-bold leading-tight">{grandma.name}</div>
+              <div className="truncate text-[11px] text-white/70">
+                “{grandma.tagline}” · GrahmOS Concierge
               </div>
             </div>
+            <button
+              onClick={() => openGrandmaPicker()}
+              className="rounded-md px-1.5 py-1 text-[11px] font-semibold text-white/80 hover:bg-white/10 hover:text-white"
+              title="Switch your guide"
+            >
+              Switch
+            </button>
             <button onClick={() => setOpen(false)} className="rounded-md bg-transparent p-1 hover:bg-white/10">
               <X className="h-4 w-4" />
             </button>
@@ -147,7 +200,7 @@ export default function Concierge({ surface }: { surface?: string }) {
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask anything…"
+              placeholder={`Ask ${grandma.shortName} anything…`}
               className="h-10 flex-1 text-sm"
             />
             <Button type="submit" size="icon" disabled={loading || !input.trim()}>
@@ -157,14 +210,45 @@ export default function Concierge({ surface }: { surface?: string }) {
         </div>
       )}
 
-      {/* Launcher */}
+      {/* Launcher — her orb */}
+      <style>{`
+        @keyframes grahmos-orb-pulse {
+          0% { transform: scale(1); opacity: 0.5; }
+          70%, 100% { transform: scale(1.5); opacity: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .grahmos-orb-ring { animation: none !important; opacity: 0; }
+        }
+      `}</style>
       <button
-        onClick={() => setOpen((o) => !o)}
-        className="flex h-14 items-center gap-2.5 rounded-full bg-gradient-to-r from-grahmos-purple-deep to-grahmos-purple px-5 text-white shadow-xl transition-transform hover:scale-105"
+        onClick={() => (open ? setOpen(false) : requestOpen())}
+        aria-label={`Ask ${grandma.shortName}`}
+        className="group relative flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-grahmos-purple-deep to-grahmos-purple text-2xl shadow-xl transition-transform hover:scale-105"
       >
-        <Headset className="h-5 w-5" />
-        {!open && <span className="text-sm font-semibold">Ask Concierge</span>}
+        <span
+          aria-hidden
+          className="grahmos-orb-ring pointer-events-none absolute inset-0 rounded-full"
+          style={{
+            border: `2px solid ${grandma.accentColor}`,
+            animation: "grahmos-orb-pulse 2.4s ease-out infinite",
+          }}
+        />
+        <span aria-hidden>{grandma.emoji}</span>
+        <span
+          aria-hidden
+          className="absolute -right-0.5 -top-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] text-white shadow"
+          style={{ backgroundColor: grandma.accentColor }}
+        >
+          ✦
+        </span>
+        {!open && (
+          <span className="pointer-events-none absolute right-full top-1/2 mr-3 hidden -translate-y-1/2 whitespace-nowrap rounded-lg bg-grahmos-ink/90 px-2.5 py-1 text-xs font-semibold text-white group-hover:block">
+            Ask {grandma.shortName}
+          </span>
+        )}
       </button>
+
+      <GrandmaPicker />
     </div>
   );
 }

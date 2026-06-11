@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useGrandma } from "@/lib/grandmothers";
 import { useRoute } from "@/lib/routeContext";
 import { currentStop, routeProgress } from "@/lib/routeEngine";
 
@@ -8,6 +9,7 @@ import { currentStop, routeProgress } from "@/lib/routeEngine";
  *  above the Concierge launcher (which docks at bottom-5 right-5, z-60). */
 export default function RouteCard() {
   const { route, completeStop, clearRoute } = useRoute();
+  const grandma = useGrandma();
   const { pathname } = useLocation();
   const [expanded, setExpanded] = useState(false);
 
@@ -30,6 +32,9 @@ export default function RouteCard() {
               {route.intent}
             </div>
             <div className="text-[11px] font-semibold text-[var(--os-text-tertiary)]">
+              <span aria-hidden className="mr-1">
+                {grandma.emoji}
+              </span>
               {finished ? "Route complete" : `Stop ${done + 1} of ${total}`}
             </div>
           </div>

@@ -28,26 +28,52 @@ interface ChatMessage {
   content: string;
 }
 
-function cannedReply(messages: ChatMessage[]): string {
+/** Grandmother persona skin — never a second agent, just the concierge's voice. */
+interface Persona {
+  name: string;
+  style: string;
+}
+
+function parsePersona(raw: unknown): Persona | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const { name, style } = raw as { name?: unknown; style?: unknown };
+  if (typeof name !== "string" || typeof style !== "string" || !name.trim()) return undefined;
+  return { name: name.trim().slice(0, 60), style: style.trim().slice(0, 240) };
+}
+
+function personaNote(persona: Persona): string {
+  return `\n\nPersona: speak as ${persona.name} — ${persona.style} Stay warm, grandmotherly, and concise. Never claim to be human. You are the single GrahmOS Concierge wearing this persona — not a separate agent.`;
+}
+
+function cannedReply(messages: ChatMessage[], persona?: Persona): string {
   const userMsgs = messages.filter((m) => m.role === "user");
   const last = (userMsgs.length ? userMsgs[userMsgs.length - 1].content : "").toLowerCase();
+  const sign = (reply: string) => (persona ? `${reply} — ${persona.name}` : reply);
   if (last.includes("quote") || last.includes("bulk") || /\d{3,}/.test(last)) {
-    return "I can help with that. Tell me the product and quantity, and I'll open a B2B quote and route it to our sourcing agents for verified pricing — usually back within 24 hours.";
+    return sign(
+      "I can help with that. Tell me the product and quantity, and I'll open a B2B quote and route it to our sourcing agents for verified pricing — usually back within 24 hours."
+    );
   }
   if (last.includes("storefront") || last.includes("lease") || last.includes("rent") || last.includes("sell")) {
-    return "Wonderful — GrahmOS offers Pop-Up, Starter, Premium, and Anchor storefronts. Tell me your category and goals and I'll match you with a leasing concierge to secure your placement.";
+    return sign(
+      "Wonderful — GrahmOS offers Pop-Up, Starter, Premium, and Anchor storefronts. Tell me your category and goals and I'll match you with a leasing concierge to secure your placement."
+    );
   }
   if (last.includes("source") || last.includes("supplier") || last.includes("find")) {
-    return "I'll put our sourcing desk on it. Share what you're looking for (specs, quantity, timeline) and I'll match verified partners in the GrahmOS network — no dead ends.";
+    return sign(
+      "I'll put our sourcing desk on it. Share what you're looking for (specs, quantity, timeline) and I'll match verified partners in the GrahmOS network — no dead ends."
+    );
   }
-  return "Hi! I'm your GrahmOS Concierge. I can help you find suppliers, compare quotes, source products, or lease the perfect storefront. What are you working on today?";
+  return sign(
+    "Hi! I'm your GrahmOS Concierge. I can help you find suppliers, compare quotes, source products, or lease the perfect storefront. What are you working on today?"
+  );
 }
 
 export default async (req: Request, _context: Context) => {
   // Concierge is open to any signed-in user; anonymous gets the canned greeter.
   const user = await authenticate(req);
 
-  let body: { messages?: ChatMessage[]; surface?: string } = {};
+  let body: { messages?: ChatMessage[]; surface?: string; persona?: unknown } = {};
   try {
     body = await req.json();
   } catch {
@@ -56,13 +82,14 @@ export default async (req: Request, _context: Context) => {
   const messages = (body.messages ?? []).filter(
     (m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string"
   );
+  const persona = parsePersona(body.persona);
   if (messages.length === 0) {
-    return json({ reply: cannedReply([]), source: "canned" });
+    return json({ reply: cannedReply([], persona), source: "canned" });
   }
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return json({ reply: cannedReply(messages), source: "canned", demo: true });
+    return json({ reply: cannedReply(messages, persona), source: "canned", demo: true });
   }
 
   try {
@@ -71,18 +98,18 @@ export default async (req: Request, _context: Context) => {
     const response = await client.messages.create({
       model: "claude-opus-4-8",
       max_tokens: 1024,
-      system: SYSTEM + surfaceNote,
+      system: SYSTEM + surfaceNote + (persona ? personaNote(persona) : ""),
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
     });
     const text = response.content.find((b) => b.type === "text");
     return json({
-      reply: text && text.type === "text" ? text.text : cannedReply(messages),
+      reply: text && text.type === "text" ? text.text : cannedReply(messages, persona),
       source: "claude",
       role: user?.role ?? "guest",
     });
   } catch (err) {
     // Never dead-end the buyer — degrade to the canned concierge.
-    return json({ reply: cannedReply(messages), source: "fallback" });
+    return json({ reply: cannedReply(messages, persona), source: "fallback" });
   }
 };
 

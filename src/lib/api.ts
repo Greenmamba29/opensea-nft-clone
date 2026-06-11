@@ -34,13 +34,20 @@ export interface ConciergeReply {
   demo?: boolean;
 }
 
+/** Grandmother persona skin for the single concierge — flavors the prompt. */
+export interface ConciergePersona {
+  name: string;
+  style: string;
+}
+
 export function askConcierge(
   messages: { role: "user" | "assistant"; content: string }[],
-  surface?: string
+  surface?: string,
+  persona?: ConciergePersona
 ): Promise<ConciergeReply> {
   return api<ConciergeReply>("/api/concierge", {
     method: "POST",
-    body: JSON.stringify({ messages, surface }),
+    body: JSON.stringify({ messages, surface, persona }),
   });
 }
 

@@ -7,6 +7,7 @@ import { useGrahmOSAuth } from "@/auth/auth-context";
 import Reveal from "@/components/grahmos/Reveal";
 import Concierge from "@/components/grahmos/Concierge";
 import ApplyStorefrontModal from "@/components/grahmos/ApplyStorefrontModal";
+import GrandmaCorner from "@/components/grahmos/landing/GrandmaCorner";
 import Hero from "@/components/grahmos/landing/Hero";
 import ValueBand from "@/components/grahmos/landing/ValueBand";
 import MarqueeStrip from "@/components/grahmos/landing/MarqueeStrip";
@@ -111,6 +112,7 @@ export default function LandingPage() {
       <SiteFooter />
 
       <ApplyStorefrontModal open={applyOpen} onClose={() => setApplyOpen(false)} tier={applyTier} />
+      <GrandmaCorner />
       <Concierge surface="landing" />
     </div>
   );

@@ -3,6 +3,15 @@ import { Link } from "react-router-dom";
 import { AISLES, aisleBySlug } from "@/lib/mallData";
 import { generateRoute, currentStop, routeProgress } from "@/lib/routeEngine";
 import { useRoute } from "@/lib/routeContext";
+import {
+  loadChosenGrandma,
+  narrate,
+  openGrandmaPicker,
+  pickGrandmotherForIntent,
+  useGrandma,
+  type Grandmother,
+} from "@/lib/grandmothers";
+import { usePrefersReducedMotion } from "@/components/grahmos/landing/use-motion";
 
 const EXAMPLE_INTENTS = [
   "200 branded boxes for my business",
@@ -27,17 +36,53 @@ function blockPos(index: number) {
   return { x: 20 + col * 190, y: row === 0 ? 24 : 128 };
 }
 
-function MallMap({ targetSlug }: { targetSlug: string }) {
+/** Point a fraction `t` (0..1) of the way along a polyline, by arc length. */
+function pointAlong(pts: Array<{ x: number; y: number }>, t: number): { x: number; y: number } {
+  if (pts.length === 0) return { x: 400, y: 306 };
+  const lengths = pts.slice(1).map((p, i) => Math.hypot(p.x - pts[i].x, p.y - pts[i].y));
+  const total = lengths.reduce((a, b) => a + b, 0);
+  let dist = Math.min(1, Math.max(0, t)) * total;
+  for (let i = 0; i < lengths.length; i++) {
+    if (dist <= lengths[i] || i === lengths.length - 1) {
+      const f = lengths[i] === 0 ? 0 : Math.min(1, dist / lengths[i]);
+      return {
+        x: pts[i].x + (pts[i + 1].x - pts[i].x) * f,
+        y: pts[i].y + (pts[i + 1].y - pts[i].y) * f,
+      };
+    }
+    dist -= lengths[i];
+  }
+  return pts[pts.length - 1];
+}
+
+function MallMap({
+  targetSlug,
+  progress,
+  grandma,
+}: {
+  targetSlug: string;
+  /** Fraction of stops completed (0..1) — drives the traveling marker. */
+  progress: number;
+  grandma: Grandmother;
+}) {
+  const reduced = usePrefersReducedMotion();
   const targetIndex = AISLES.findIndex((a) => a.slug === targetSlug);
   const target = targetIndex >= 0 ? blockPos(targetIndex) : null;
   const targetRow = targetIndex >= 0 ? Math.floor(targetIndex / 4) : 0;
   const cx = target ? target.x + BLOCK_W / 2 : 400;
   // Walk up the central corridor, turn down the row gap, arrive at the block.
-  const path = target
-    ? targetRow === 0
-      ? `M400 300 L400 118 L${cx} 118 L${cx} 110`
-      : `M400 300 L400 222 L${cx} 222 L${cx} 214`
-    : "";
+  const yMid = targetRow === 0 ? 118 : 222;
+  const yEnd = targetRow === 0 ? 110 : 214;
+  const walkPoints = target
+    ? [
+        { x: 400, y: 300 },
+        { x: 400, y: yMid },
+        { x: cx, y: yMid },
+        { x: cx, y: yEnd },
+      ]
+    : [];
+  const path = target ? `M400 300 L400 ${yMid} L${cx} ${yMid} L${cx} ${yEnd}` : "";
+  const traveler = pointAlong(walkPoints, progress);
 
   return (
     <div className="rounded-2xl border border-[var(--os-border)] bg-[var(--os-surface)] p-4">
@@ -109,6 +154,23 @@ function MallMap({ targetSlug }: { targetSlug: string }) {
         <text x={416} y={311} fontSize="13" fontWeight="700" fill="var(--os-text-secondary)">
           You are here · Mall entrance
         </text>
+
+        {/* Traveling marker — your grandma walks the route as stops complete.
+            Reduced motion: position jumps without the transition. */}
+        {walkPoints.length > 0 && (
+          <g
+            style={{
+              transform: `translate(${traveler.x}px, ${traveler.y}px)`,
+              transition: reduced ? undefined : "transform 1000ms ease",
+            }}
+          >
+            <circle r={10} fill={grandma.accentColor} stroke="var(--os-bg)" strokeWidth={2.5} />
+            <circle r={4} fill="var(--os-bg)" />
+            <text y={-16} textAnchor="middle" fontSize="18" aria-hidden>
+              {grandma.emoji}
+            </text>
+          </g>
+        )}
       </svg>
     </div>
   );
@@ -118,6 +180,12 @@ function MallMap({ targetSlug }: { targetSlug: string }) {
 
 export default function DirectionsPage() {
   const { route, startRoute, completeStop, clearRoute } = useRoute();
+  // Re-renders on grandma change; the narrator prefers her specialty fallback
+  // below when the user never explicitly chose a guide.
+  const chosenOrAssigned = useGrandma();
+  const grandma = route
+    ? loadChosenGrandma() ?? pickGrandmotherForIntent(route.aisleSlug)
+    : chosenOrAssigned;
   const [intent, setIntent] = useState("");
   const [pendingIntent, setPendingIntent] = useState<string | null>(null);
   const [quantity, setQuantity] = useState<string | null>(null);
@@ -136,6 +204,8 @@ export default function DirectionsPage() {
     startRoute(generateRoute(pendingIntent, { quantity: quantity ?? undefined }));
     setPendingIntent(null);
     setIntent("");
+    // First run: no stored grandma yet — meet your guide before you walk.
+    if (!loadChosenGrandma()) openGrandmaPicker();
   }
 
   function resetAll() {
@@ -200,7 +270,37 @@ export default function DirectionsPage() {
               </div>
             </div>
 
-            <MallMap targetSlug={route.aisleSlug} />
+            {/* Grandmother guide — the concierge's persona narrates the walk */}
+            <div className="flex items-center gap-3 rounded-2xl border border-[var(--os-border)] bg-[var(--os-surface)] px-4 py-3">
+              <span
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl"
+                style={{
+                  backgroundColor: `${grandma.accentColor}26`,
+                  boxShadow: `inset 0 0 0 1.5px ${grandma.accentColor}`,
+                }}
+                aria-hidden
+              >
+                {grandma.emoji}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="text-sm font-bold">{grandma.shortName} is guiding you</div>
+                <div className="truncate text-xs italic text-[var(--os-text-secondary)]">
+                  “{grandma.routeBlessing}”
+                </div>
+              </div>
+              <button
+                onClick={openGrandmaPicker}
+                className="shrink-0 text-xs font-bold text-[var(--os-text-tertiary)] transition-colors hover:text-[var(--os-text)]"
+              >
+                Change guide
+              </button>
+            </div>
+
+            <MallMap
+              targetSlug={route.aisleSlug}
+              progress={routeProgress(route).done / route.stops.length}
+              grandma={grandma}
+            />
 
             {/* Vertical stepper */}
             <div className="relative rounded-2xl border border-[var(--os-border)] bg-[var(--os-surface)] px-6 py-6">
@@ -230,6 +330,11 @@ export default function DirectionsPage() {
                           {stop.title}
                         </div>
                         <div className="mt-0.5 text-xs text-[var(--os-text-secondary)]">{stop.subtitle}</div>
+                        {!stop.done && (
+                          <div className="mt-1 text-xs italic" style={{ color: grandma.accentColor }}>
+                            “{narrate(stop, grandma)}”
+                          </div>
+                        )}
                         {!stop.done && (
                           <div className="mt-2 flex items-center gap-3">
                             <Link

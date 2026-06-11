@@ -104,6 +104,23 @@ to the storefront/product/quote it references. A stylized SVG mall-map header si
 above the stepper for delight and orientation. **The map is garnish; the stepper
 is the engine.** If the map ships a phase late, nothing breaks.
 
+### 3.1 The Maps-clone evolution (v1 → v3)
+
+Directions Mode deliberately clones the Google Maps UX, deepening each phase:
+
+- **v1 (shipped):** route = vertical stepper + SVG mall map with an animated
+  path; the buyer's guide marker travels the map as stops complete — turn-by-turn,
+  but tap-to-advance.
+- **v2 — live navigation:** the journey animates *continuously* and life-like:
+  the guide walks the route in real time as the buyer browses, re-routes when
+  the buyer detours ("you've wandered into Fabrication — want to keep going, or
+  shall we get back to your boxes?"), and recalculates ETA as quotes land.
+- **v3 — agent orchestration at the edge:** each active journey gets its own
+  **journey subagent** (Cloudflare Durable Object, one per user-route) embedded
+  in the navigation itself — it holds route state, watches for quote responses
+  and stock changes, and nudges the route forward without a page open. The
+  visible experience never changes: it is still one guide, one route, one voice.
+
 Directions Mode is the demo, the screenshot, and the reason a BNY buyer tells
 another BNY buyer about GrahmOS.
 
@@ -130,6 +147,30 @@ GrahmOS Concierge (the only visible surface)
 A buyer never learns they were handed between specialists, and never sees an
 agent roster, a routing decision, or a "transferring you now" message. The full
 architectural roster and routing rules live in `agents.md`.
+
+### 4.1 The Grandmothers (the face of the concierge)
+
+The one visible agent wears a face the user chooses: a **Grandmother** — a warm,
+persona-rich guide selected from a small cast (or assigned on first visit, sticky
+forever after). She is a *persona skin* on the single concierge, never a second
+agent — the one-voice invariant holds.
+
+- **Cast:** ~6 Brooklyn-flavored grandmothers, each with a name, voice, accent
+  color, and a specialty aisle (e.g. Nonna Rosa → Food & Beverage, Nai Nai Lin →
+  Electronics). Warm and premium, never kitschy.
+- **Where she lives:** a small **orb** at the bottom of every screen (mall and
+  landing). On full desktop pages, a corner avatar card with a **phone-style
+  "Call" CTA**. In Guided Mode she narrates the route and her marker walks the
+  mall map.
+- **Personal and persistent:** each user gets *their* grandmother — one persona
+  dedicated to that user's outcomes. Her voice constitution derives from
+  `soul.md`; her per-user memory (preferences, past routes, open quotes) persists
+  server-side and follows the user across sessions.
+- **The memory loop:** persona + conversation outcomes are written back to the
+  ops layer (Airtable today, Neon as system of record), which feeds the agent
+  loop; the loop returns learned parameters (intent patterns, conversion
+  signals, stuck-journey flags) to Agent Desk so admins see what every
+  grandmother is learning. User-facing: she just *remembers you*.
 
 ---
 
@@ -277,12 +318,13 @@ The renames table (§2.1) is the buyer-facing naming; this is the implementation
 
 ---
 
-## 10. Later phases (not v1): ownership, deeds & crypto
+## 10. Committed later phases: ownership, deeds, crypto & the pre-IPO market
 
-> Everything in this section is real and stays in the plan — it is simply **not
-> the launch story** and **never visible to v1 buyers.** v1 phrasing: *"Buyers pay
-> normally. Tenants can later upgrade into digital ownership of their storefront
-> unit."*
+> Everything in this section is **committed roadmap, not maybes** — it is simply
+> not the launch story and **never visible to v1 buyers.** v1 phrasing: *"Buyers
+> pay normally. Tenants can later upgrade into digital ownership of their
+> storefront unit."* Crypto is deferred in sequencing only; it is a core part of
+> what GrahmOS becomes.
 
 ### The value thesis (deferred, not deleted)
 Buyers pay in any currency (card, ACH, PO/net terms; later stablecoin/crypto).
@@ -300,9 +342,37 @@ from is not a leftover — it becomes the **deed registry** for mall real estate
 - **Public deed resale** and the **full rewards game** (Phase 4+).
 - ConnectWalletModal resurfaces as the deed-ownership + crypto-checkout entry.
 
-### Invariants that survive the deferral
+### Phase 5 — The decentralized pre-IPO market (founder thesis)
+
+The endgame the deed registry builds toward: a **decentralized market that
+prices private companies before they have public value.** The mall is the
+instrument — every tenant generates continuous, verifiable commercial signal
+(traffic, GMV, quote-to-order conversion, repeat rate, payout history). Deed
+and storefront-equity trading against that signal becomes a live price-discovery
+mechanism for pre-IPO companies: the market caps a business on its *observed
+commerce*, not on pitch decks.
+
+How it layers (each stream of signal feeds the next):
+1. **Commerce layer (v1):** real orders/quotes produce ground-truth revenue data.
+2. **Occupancy layer (Phase 4):** deed values capitalize location + traffic.
+3. **Equity layer (Phase 5):** tenants optionally tokenize a storefront-equity
+   slice; the decentralized market prices it continuously against layers 1–2.
+
+**Honesty gates (non-negotiable):**
+- This is a *founder hypothesis* to be validated quantitatively against real
+  mall data — the pricing model must be specified, backtested, and documented
+  on its own merits before any external claim is made about it.
+- Tokenized pre-IPO equity is a regulated securities activity in essentially
+  every jurisdiction. **Phase 5 does not ship — and is not pitched as a product —
+  before securities counsel signs off on the structure** (Reg CF/Reg A/Reg D or
+  equivalent, transfer restrictions, accreditation, disclosures).
+- It inherits the §1.1 rule: none of this is ever visible to buyers; it is a
+  tenant/investor surface.
+
+### Invariants that survive the sequencing
 - Crypto is always *additive*, never *required*. Any buyer transacts entirely in fiat, forever.
 - "Tokens / NFTs / Deeds" vocabulary stays tenant/admin-side even after launch — buyers see "Storefront Unit," "ownership," "upgrade."
+- No claim about the pricing model leaves the building without the math and the legal opinion behind it.
 
 ---
 

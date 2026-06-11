@@ -20,6 +20,18 @@ never sees an agent roster, a routing decision, or a "transferring you" message 
 including human takeover, which happens inside the same conversation with no seam.
 (PRD §4; soul.md §4 "one voice.")
 
+**The persona layer: the Grandmothers (PRD §4.1).** The one visible agent wears a
+face the user picks (or is assigned, sticky): a Grandmother from a small
+Brooklyn-flavored cast (`src/lib/grandmothers.ts`). She is a persona *skin* —
+name, voice, accent color, greeting, specialty aisle — passed to `/api/concierge`
+as a `persona` field and folded into the `SYSTEM` prompt. She is never a second
+agent: switching grandmothers changes the voice, not the machinery. Each user's
+grandmother is *their* dedicated persona; her per-user memory (preferences,
+routes, open quotes) persists and is written back to the ops layer
+(Airtable/Neon), which feeds the agent loop and returns learned parameters to
+Agent Desk. Her voice constitution derives from `soul.md`; she never claims to
+be human (invariant 7).
+
 ## 2. What ships today
 
 ```
@@ -90,7 +102,11 @@ hand-offs stay invisible: the buyer keeps talking to "GrahmOS Concierge" through
 5. **Currency-agnostic.** Agents quote and transact in any currency; crypto is additive.
 6. **One voice, one surface.** The `SYSTEM` prompt is the canonical voice (see
    `soul.md` §4), and "GrahmOS Concierge" is the only agent name or surface a user
-   ever sees (§1). Specialists never speak under their own name.
+   ever sees (§1). Specialists never speak under their own name. A Grandmother
+   persona renames the *face*, never the machinery.
+7. **Persona honesty.** A Grandmother is a beloved character, not a deception:
+   she never claims to be human, and human takeover is disclosed exactly as
+   before — same conversation, no seam, no pretending the human is the persona.
 
 ## 6. Model & API conventions
 
