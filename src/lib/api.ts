@@ -172,15 +172,17 @@ export interface ShopifyCatalogProduct {
   image: null;
   imageUrl?: string;
   url?: string;
-  source: "shopify" | "demo";
+  source: "shopify" | "shopify-sync" | "demo";
 }
 
 export interface ShopifyCatalog {
-  source: "shopify" | "demo";
+  /** 'shopify' = live Storefront API · 'shopify-sync' = catalog synced via
+   *  Admin API (see netlify/functions/_shopify-snapshot.ts) · 'demo' = mock. */
+  source: "shopify" | "shopify-sync" | "demo";
   products: ShopifyCatalogProduct[];
 }
 
-/** Live (or demo-fallback) product catalog for a storefront's Shopify store. */
+/** Live (or synced/demo-fallback) product catalog for a storefront's Shopify store. */
 export function getShopifyCatalog(domain: string): Promise<ShopifyCatalog> {
   return api(`/api/shopify/catalog?domain=${encodeURIComponent(domain)}`);
 }

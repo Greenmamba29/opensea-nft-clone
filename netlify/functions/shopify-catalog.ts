@@ -2,6 +2,7 @@ import type { Config, Context } from "@netlify/functions";
 
 import { json } from "./_auth";
 import { PRODUCTS, STOREFRONTS } from "./_data";
+import { SHOPIFY_SNAPSHOTS } from "./_shopify-snapshot";
 
 /**
  * GET /api/shopify/catalog?domain=<shopifyDomain>
@@ -24,7 +25,7 @@ export interface ShopifyCatalogProduct {
   image: null;
   imageUrl?: string;
   url?: string;
-  source: "shopify" | "demo";
+  source: "shopify" | "shopify-sync" | "demo";
 }
 
 const PRODUCTS_QUERY = `
@@ -53,6 +54,23 @@ interface ShopifyProductNode {
   priceRange: { minVariantPrice: { amount: string; currencyCode: string } };
 }
 
+/** Catalog synced from the real store via the Admin API (see _shopify-snapshot.ts). */
+function syncedCatalog(domain: string) {
+  const snapshot = SHOPIFY_SNAPSHOTS[domain];
+  if (!snapshot) return null;
+  const products: ShopifyCatalogProduct[] = snapshot.map((p) => ({
+    id: p.id,
+    name: p.name,
+    price: p.price,
+    unit: p.unit,
+    image: null,
+    imageUrl: p.imageUrl,
+    url: p.url,
+    source: "shopify-sync" as const,
+  }));
+  return json({ source: "shopify-sync", products });
+}
+
 function demoCatalog(domain: string) {
   const storefront = STOREFRONTS.find((s) => s.shopifyDomain === domain);
   const products: ShopifyCatalogProduct[] = (
@@ -79,7 +97,7 @@ export default async (req: Request, _context: Context) => {
   }
 
   const token = process.env.SHOPIFY_STOREFRONT_API_TOKEN;
-  if (!token) return demoCatalog(domain);
+  if (!token) return syncedCatalog(domain) ?? demoCatalog(domain);
 
   try {
     const res = await fetch(`https://${domain}/api/2024-10/graphql.json`, {
@@ -90,13 +108,13 @@ export default async (req: Request, _context: Context) => {
       },
       body: JSON.stringify({ query: PRODUCTS_QUERY }),
     });
-    if (!res.ok) return demoCatalog(domain);
+    if (!res.ok) return syncedCatalog(domain) ?? demoCatalog(domain);
 
     const payload = (await res.json()) as {
       data?: { products?: { edges?: { node: ShopifyProductNode }[] } };
     };
     const edges = payload.data?.products?.edges;
-    if (!edges) return demoCatalog(domain);
+    if (!edges) return syncedCatalog(domain) ?? demoCatalog(domain);
 
     const products: ShopifyCatalogProduct[] = edges.map(({ node }) => ({
       id: node.id,
@@ -110,7 +128,7 @@ export default async (req: Request, _context: Context) => {
     }));
     return json({ source: "shopify", products });
   } catch {
-    return demoCatalog(domain);
+    return syncedCatalog(domain) ?? demoCatalog(domain);
   }
 };
 

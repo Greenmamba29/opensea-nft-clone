@@ -184,6 +184,8 @@ export const STOREFRONTS: Storefront[] = [
   { id: "sf_06", merchant: "BNY Metalworks", storeType: "B2B Store", category: "Fabrication", aisle: "fabrication", tier: "lease", status: "active", assignedAgent: "Liam Chen", monthlyLease: 459, platform: "native" },
   { id: "sf_07", merchant: "Circuit & Co.", storeType: "Retail Store", category: "Electronics", aisle: "electronics", tier: "rent", status: "active", assignedAgent: "Maya Kapoor", monthlyLease: 219, platform: "shopify", shopifyDomain: "circuit-and-co-bny.myshopify.com" },
   { id: "sf_08", merchant: "Harbor Lines", storeType: "B2B Store", category: "Logistics & Delivery", aisle: "logistics", tier: "lease", status: "active", assignedAgent: "Noah Williams", monthlyLease: 389, platform: "native" },
+  // The real, connected Shopify store — the mall's flagship integration.
+  { id: "sf_09", merchant: "Grahmos MarketBNY", storeType: "Brand Store", category: "Local Brands", aisle: "local-brands", tier: "own", status: "active", assignedAgent: "Ava Reynolds", monthlyLease: 899, platform: "shopify", shopifyDomain: "grahmos-marketbny.myshopify.com" },
 ];
 
 export const PRODUCTS: Product[] = [

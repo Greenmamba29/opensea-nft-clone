@@ -57,6 +57,7 @@ export const MALL_STOREFRONTS: MallStorefront[] = [
   { id: "sf_06", merchant: "BNY Metalworks", storeType: "B2B Store", aisle: "fabrication", tier: "lease", tagline: "CNC, laser cutting, and short-run fabrication.", icon: "🔩", monthlySales: "$84K", customers: 150, fromPrice: "$35", platform: "native" },
   { id: "sf_07", merchant: "Circuit & Co.", storeType: "Retail Store", aisle: "electronics", tier: "rent", tagline: "Components, assemblies, and same-week repair.", icon: "🔌", monthlySales: "$51K", customers: 720, fromPrice: "$3.10", platform: "shopify", shopifyDomain: "circuit-and-co-bny.myshopify.com" },
   { id: "sf_08", merchant: "Harbor Lines", storeType: "B2B Store", aisle: "logistics", tier: "lease", tagline: "Same-day courier and borough-wide freight.", icon: "🚚", monthlySales: "$63K", customers: 340, fromPrice: "$12", platform: "native" },
+  { id: "sf_09", merchant: "Grahmos MarketBNY", storeType: "Brand Store", aisle: "local-brands", tier: "own", tagline: "The mall's flagship store — live Shopify catalog.", icon: "🏔️", monthlySales: "$8K", customers: 120, fromPrice: "$9.95", platform: "shopify", shopifyDomain: "grahmos-marketbny.myshopify.com" },
 ];
 
 export function storefrontsByAisle(slug: string): MallStorefront[] {

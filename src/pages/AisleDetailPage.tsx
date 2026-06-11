@@ -1,8 +1,61 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { aisleBySlug, storefrontsByAisle, MALL_PRODUCTS } from '@/lib/mallData';
+import { getShopifyCatalog, ShopifyCatalog } from '@/lib/api';
 
 const TIER_LABELS: Record<string, string> = { rent: 'Renting', lease: 'Leasing', own: 'Owner' };
+
+/** Live catalog strip for an integrated Shopify storefront in this aisle. */
+function ShopifyCatalogStrip({ merchant, domain }: { merchant: string; domain: string }) {
+  const [catalog, setCatalog] = useState<ShopifyCatalog | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    getShopifyCatalog(domain)
+      .then((c) => { if (alive) setCatalog(c); })
+      .catch(() => { /* strip simply doesn't render */ });
+    return () => { alive = false; };
+  }, [domain]);
+
+  if (!catalog || catalog.source === 'demo' || catalog.products.length === 0) return null;
+
+  return (
+    <>
+      <div className="flex items-center gap-3 mb-6">
+        <h2 className="text-xl font-black">Live from {merchant}</h2>
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border border-[var(--os-green)]/30 bg-[var(--os-green)]/15 text-[var(--os-green)]">
+          🛍 Shopify {catalog.source === 'shopify' ? '· live' : '· synced'}
+        </span>
+      </div>
+      <div className="flex gap-5 overflow-x-auto no-scrollbar pb-4 mb-12">
+        {catalog.products.map((product) => (
+          <a
+            key={product.id}
+            href={product.url ?? '#'}
+            target="_blank"
+            rel="noreferrer"
+            className="group flex-shrink-0 w-56 bg-[var(--os-surface)] border border-[var(--os-border)] rounded-2xl overflow-hidden hover:border-[var(--os-blue)] transition-all"
+          >
+            <div className="h-32 bg-[var(--os-surface-2)] flex items-center justify-center overflow-hidden">
+              {product.imageUrl ? (
+                <img src={product.imageUrl} alt={product.name} className="h-full w-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+              ) : (
+                <span className="text-5xl">🛍</span>
+              )}
+            </div>
+            <div className="p-4">
+              <div className="font-bold text-sm mb-1 truncate group-hover:text-[var(--os-blue)] transition-colors">{product.name}</div>
+              <div className="text-xs text-[var(--os-text-secondary)] font-medium mb-2">{merchant}</div>
+              <div className="font-black text-sm">
+                ${product.price.toLocaleString()} <span className="text-[10px] text-[var(--os-text-tertiary)] font-bold">{product.unit}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </>
+  );
+}
 
 export default function AisleDetailPage() {
   const { slug } = useParams();
@@ -82,6 +135,13 @@ export default function AisleDetailPage() {
             </Link>
           ))}
         </div>
+
+        {/* Live Shopify catalogs for integrated storefronts in this aisle */}
+        {stores
+          .filter((s) => s.platform === 'shopify' && s.shopifyDomain)
+          .map((s) => (
+            <ShopifyCatalogStrip key={s.id} merchant={s.merchant} domain={s.shopifyDomain!} />
+          ))}
 
         {/* Products strip */}
         {products.length > 0 && (
