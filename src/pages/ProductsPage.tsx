@@ -1,6 +1,34 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { AISLES, MALL_PRODUCTS, aisleBySlug } from '@/lib/mallData';
+import { startCheckout } from '@/lib/api';
+
+/** Buy via escrow — opens the partner checkout. Stops the parent card Link. */
+function BuyButton({ tenant, amountCents, productId, productName }: {
+  tenant: string; amountCents: number; productId: string; productName: string;
+}) {
+  const [busy, setBusy] = useState(false);
+  async function buy(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setBusy(true);
+    try {
+      const res = await startCheckout({ tenant, amountCents, productId, productName });
+      window.location.href = res.checkoutUrl;
+    } catch {
+      setBusy(false);
+    }
+  }
+  return (
+    <button
+      onClick={buy}
+      disabled={busy}
+      className="rounded-lg bg-[var(--os-blue)] px-3 py-1.5 text-xs font-bold text-white hover:brightness-110 transition disabled:opacity-60"
+    >
+      {busy ? 'Opening…' : 'Buy'}
+    </button>
+  );
+}
 
 export default function ProductsPage() {
   const [searchParams] = useSearchParams();
@@ -111,9 +139,12 @@ export default function ProductsPage() {
                         ${product.price.toLocaleString()}{' '}
                         <span className="text-[10px] text-[var(--os-text-tertiary)] font-bold">{product.unit}</span>
                       </div>
-                      <div className="text-[10px] font-bold text-[var(--os-text-tertiary)] uppercase">
-                        Min {product.minOrder}
-                      </div>
+                      <BuyButton
+                        tenant={product.storefront}
+                        amountCents={Math.round(product.price * product.minOrder * 100)}
+                        productId={product.id}
+                        productName={product.name}
+                      />
                     </div>
                   </div>
                 </Link>

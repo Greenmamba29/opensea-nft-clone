@@ -1,6 +1,36 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { MALL_ORDERS, ORDER_STATUS_STYLES } from '@/lib/mallData';
+
+/** Banner shown when the buyer returns from checkout (?escrow=…&status=…). */
+function EscrowReturnBanner() {
+  const [params] = useSearchParams();
+  const escrow = params.get('escrow');
+  const status = params.get('status');
+  if (!escrow) return null;
+  const cancelled = status === 'cancelled';
+  return (
+    <div
+      className={`mb-6 flex items-start gap-3 rounded-2xl border px-5 py-4 ${
+        cancelled
+          ? 'border-[var(--os-red)]/30 bg-[var(--os-red)]/10 text-[var(--os-red)]'
+          : 'border-[var(--os-green)]/30 bg-[var(--os-green)]/10 text-[var(--os-green)]'
+      }`}
+    >
+      <span className="text-lg">{cancelled ? '⚠' : '🛡️'}</span>
+      <div className="text-sm font-bold">
+        {cancelled ? (
+          <>Checkout cancelled — escrow <span className="font-mono">{escrow}</span> was not funded.</>
+        ) : (
+          <>
+            Payment received into escrow <span className="font-mono">{escrow}</span>. Your funds are held
+            safely with our payment partner — a GrahmOS agent releases them to the seller once your order is confirmed.
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const ACTIVITY_FEED = [
   { icon: '📦', text: 'Your SupplyHub Co. order shipped — arriving Thursday.', time: 'Today' },
@@ -19,7 +49,10 @@ export default function OrdersPage() {
         </p>
       </div>
 
-      <div className="flex-1 p-8 max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="flex-1 p-8 max-w-[1400px] mx-auto w-full">
+        <EscrowReturnBanner />
+      </div>
+      <div className="flex-1 px-8 pb-8 max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Orders table */}
         <div className="lg:col-span-2">
           <h2 className="text-xl font-black mb-6">Your orders</h2>

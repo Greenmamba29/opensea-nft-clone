@@ -186,3 +186,64 @@ export interface ShopifyCatalog {
 export function getShopifyCatalog(domain: string): Promise<ShopifyCatalog> {
   return api(`/api/shopify/catalog?domain=${encodeURIComponent(domain)}`);
 }
+
+/* ── Escrow checkout + desk (PRD §11.3 exchange-partner model) ──────── */
+
+export type EscrowStatus = "pending" | "held" | "released" | "refunded" | "failed";
+export type EscrowProvider = "stripe" | "escrow_com" | "demo";
+export type EscrowRail = "fiat" | "usdc";
+
+export interface EscrowRecord {
+  id: string;
+  provider: EscrowProvider;
+  rail: EscrowRail;
+  status: EscrowStatus;
+  amountCents: number;
+  currency: string;
+  buyerEmail?: string | null;
+  tenant: string;
+  productId?: string | null;
+  productName?: string | null;
+  quoteId?: string | null;
+  providerRef?: string | null;
+  timeline: { at: string; actor: string; action: string; note?: string }[];
+  createdAt: string;
+}
+
+export interface CheckoutPayload {
+  tenant: string;
+  amountCents: number;
+  productId?: string;
+  productName?: string;
+  quoteId?: string;
+  rail?: EscrowRail;
+  highValue?: boolean;
+  buyerEmail?: string;
+}
+
+export interface CheckoutResult {
+  escrowId: string;
+  provider: EscrowProvider;
+  rail: EscrowRail;
+  checkoutUrl: string;
+  demo?: boolean;
+  message?: string;
+}
+
+/** Start an escrowed purchase — returns a partner checkout URL (or demo URL). */
+export function startCheckout(payload: CheckoutPayload): Promise<CheckoutResult> {
+  return api("/api/checkout", { method: "POST", body: JSON.stringify(payload) });
+}
+
+/** Escrow Desk — operator/agent only. */
+export function listEscrows(): Promise<{ escrows: EscrowRecord[] }> {
+  return api("/api/escrow");
+}
+
+export function instructEscrow(
+  id: string,
+  action: "release" | "refund" | "simulate_hold",
+  note?: string
+): Promise<{ escrow: EscrowRecord } | { error: string }> {
+  return api("/api/escrow", { method: "POST", body: JSON.stringify({ id, action, note }) });
+}

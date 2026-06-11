@@ -44,6 +44,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar } from "@/components/ui/avatar";
 import { Modal } from "@/components/ui/modal";
 import { useGrahmOSAuth } from "@/auth/auth-context";
+import EscrowDesk from "@/components/grahmos/EscrowDesk";
 import {
   getMallOverview,
   listStorefronts,
@@ -607,6 +608,9 @@ export default function MallOSPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Escrow desk — agent money-instruction surface (PRD §11.3) */}
+          <EscrowDesk />
 
           {/* Zoning map */}
           <Card>
