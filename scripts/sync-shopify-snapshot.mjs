@@ -33,6 +33,19 @@ const DOMAINS = (process.env.SHOPIFY_SYNC_DOMAINS ?? "grahmos-marketbny.myshopif
 const STOREFRONT_TOKEN = process.env.SHOPIFY_STOREFRONT_API_TOKEN;
 const ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_API_TOKEN;
 
+/** Shopify API version — supported 12 months from release; review quarterly. */
+const SHOPIFY_API_VERSION = "2026-04";
+
+/** Storefront tokens are per-shop: a domain-specific env var
+ *  (SHOPIFY_STOREFRONT_TOKEN__GRAHMOS_MARKETBNY) wins over the shared one. */
+function storefrontTokenFor(domain) {
+  const key = `SHOPIFY_STOREFRONT_TOKEN__${domain
+    .replace(/\.myshopify\.com$/i, "")
+    .replace(/[^a-z0-9]/gi, "_")
+    .toUpperCase()}`;
+  return process.env[key] ?? STOREFRONT_TOKEN;
+}
+
 const STOREFRONT_QUERY = `
   query MallCatalog {
     products(first: 12) {
@@ -58,12 +71,13 @@ const ADMIN_QUERY = `
 `;
 
 async function fetchCatalog(domain) {
-  if (STOREFRONT_TOKEN) {
-    const res = await fetch(`https://${domain}/api/2024-10/graphql.json`, {
+  const storefrontToken = storefrontTokenFor(domain);
+  if (storefrontToken) {
+    const res = await fetch(`https://${domain}/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "X-Shopify-Storefront-Access-Token": STOREFRONT_TOKEN,
+        "X-Shopify-Storefront-Access-Token": storefrontToken,
       },
       body: JSON.stringify({ query: STOREFRONT_QUERY }),
     });
@@ -79,7 +93,7 @@ async function fetchCatalog(domain) {
     }));
   }
   if (ADMIN_TOKEN) {
-    const res = await fetch(`https://${domain}/admin/api/2024-10/graphql.json`, {
+    const res = await fetch(`https://${domain}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -146,7 +160,8 @@ ${entries}
 }
 
 async function main() {
-  if (!STOREFRONT_TOKEN && !ADMIN_TOKEN) {
+  const anyToken = STOREFRONT_TOKEN || ADMIN_TOKEN || DOMAINS.some((d) => storefrontTokenFor(d));
+  if (!anyToken) {
     console.log("No SHOPIFY_STOREFRONT_API_TOKEN or SHOPIFY_ADMIN_API_TOKEN set — skipping sync.");
     process.exit(78);
   }

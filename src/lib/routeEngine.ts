@@ -2,6 +2,7 @@
 // Turns a plain-language intent ("200 branded boxes for my business") into a
 // MallRoute: aisle → storefronts → compare → quote → cart. No network calls.
 
+import { bnyByAisle } from "./bnyRoster";
 import { AISLES, MALL_STOREFRONTS, type Aisle } from "./mallData";
 
 /* ── Types ─────────────────────────────────────────────────────────── */
@@ -68,6 +69,9 @@ export function matchAisle(intent: string): Aisle {
 export function generateRoute(intent: string, opts?: RouteOptions): MallRoute {
   const aisle = (opts?.aisle && AISLES.find((a) => a.slug === opts.aisle)) || matchAisle(intent);
   const storefronts = MALL_STOREFRONTS.filter((s) => s.aisle === aisle.slug).slice(0, 3);
+  // Unclaimed BNY tenant profiles in this aisle — browse-only stops (consent
+  // gate, PLAN-50-STORES.md): no quotes or carts route through them.
+  const bnyTenants = bnyByAisle(aisle.slug).slice(0, 2);
   const routeId = `route_${Date.now().toString(36)}`;
 
   const stops: RouteStop[] = [
@@ -85,6 +89,14 @@ export function generateRoute(intent: string, opts?: RouteOptions): MallRoute {
       title: `Visit ${s.merchant}`,
       subtitle: s.tagline,
       link: "/mall/collection",
+      done: false,
+    })),
+    ...bnyTenants.map((t, i) => ({
+      id: `${routeId}_bny_${i}`,
+      kind: "storefront" as const,
+      title: `Browse ${t.name}`,
+      subtitle: "Navy Yard tenant — unclaimed profile, browse only.",
+      link: `/mall/bny/${t.slug}`,
       done: false,
     })),
     {

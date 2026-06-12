@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { aisleBySlug, storefrontsByAisle, MALL_PRODUCTS } from '@/lib/mallData';
+import { bnyByAisle } from '@/lib/bnyRoster';
+import { UnclaimedBadge } from '@/components/grahmos/UnclaimedBadge';
 import { getShopifyCatalog, ShopifyCatalog } from '@/lib/api';
 
 const TIER_LABELS: Record<string, string> = { rent: 'Renting', lease: 'Leasing', own: 'Owner' };
@@ -76,6 +78,7 @@ export default function AisleDetailPage() {
   }
 
   const stores = storefrontsByAisle(aisle.slug);
+  const bnyTenants = bnyByAisle(aisle.slug);
   const products = MALL_PRODUCTS.filter((p) => p.aisle === aisle.slug);
 
   return (
@@ -135,6 +138,48 @@ export default function AisleDetailPage() {
             </Link>
           ))}
         </div>
+
+        {/* Brooklyn Navy Yard tenants — unclaimed, display-only profiles */}
+        {bnyTenants.length > 0 && (
+          <>
+            <div className="flex flex-wrap items-center gap-3 mb-2">
+              <h2 className="text-xl font-black">Navy Yard tenants in this aisle</h2>
+              <UnclaimedBadge compact />
+            </div>
+            <p className="text-xs text-[var(--os-text-tertiary)] font-medium mb-6">
+              Real Brooklyn Navy Yard businesses with move-in-ready storefronts waiting to be
+              claimed. Profiles are informational only — nothing is for sale until the business
+              claims its store.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {bnyTenants.map((tenant) => (
+                <Link
+                  key={tenant.id}
+                  to={`/mall/bny/${tenant.slug}`}
+                  className="group bg-[var(--os-surface)] border border-[var(--os-border)] rounded-2xl p-6 hover:border-[var(--os-gold)] hover:-translate-y-1 transition-all"
+                >
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="w-12 h-12 rounded-xl bg-[var(--os-surface-2)] flex items-center justify-center text-2xl">
+                      {tenant.icon}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-black truncate group-hover:text-[var(--os-gold)] transition-colors">
+                        {tenant.name}
+                      </div>
+                      <div className="text-xs font-bold text-[var(--os-text-tertiary)] uppercase tracking-wider">
+                        BNY roster #{tenant.rank}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-[var(--os-text-secondary)] font-medium mb-4 line-clamp-2">
+                    {tenant.description}
+                  </p>
+                  <UnclaimedBadge compact />
+                </Link>
+              ))}
+            </div>
+          </>
+        )}
 
         {/* Live Shopify catalogs for integrated storefronts in this aisle */}
         {stores

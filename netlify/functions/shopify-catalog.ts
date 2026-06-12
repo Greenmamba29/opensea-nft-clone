@@ -17,6 +17,33 @@ import { SHOPIFY_SNAPSHOTS } from "./_shopify-snapshot";
  * via Neon alongside the tenant provisioning flow.
  */
 
+/** Shopify API version — supported 12 months from release; review quarterly. */
+const SHOPIFY_API_VERSION = "2026-04";
+
+/** Public-catalog caching: edge-cache 5 min, serve stale up to an hour while
+ *  revalidating. Vary on the domain query so stores don't share entries. */
+const CACHE_HEADERS: Record<string, string> = {
+  "content-type": "application/json",
+  "Cache-Control": "public, max-age=60",
+  "Netlify-CDN-Cache-Control": "public, durable, s-maxage=300, stale-while-revalidate=3600",
+  "Netlify-Vary": "query=domain",
+};
+
+function cachedJson(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: CACHE_HEADERS });
+}
+
+/** Storefront tokens are per-shop: look for a domain-specific token first
+ *  (SHOPIFY_STOREFRONT_TOKEN__GRAHMOS_MARKETBNY for
+ *  grahmos-marketbny.myshopify.com), then the shared flagship token. */
+function tokenForDomain(domain: string): string | undefined {
+  const key = `SHOPIFY_STOREFRONT_TOKEN__${domain
+    .replace(/\.myshopify\.com$/i, "")
+    .replace(/[^a-z0-9]/gi, "_")
+    .toUpperCase()}`;
+  return process.env[key] ?? process.env.SHOPIFY_STOREFRONT_API_TOKEN;
+}
+
 export interface ShopifyCatalogProduct {
   id: string;
   name: string;
@@ -68,7 +95,7 @@ function syncedCatalog(domain: string) {
     url: p.url,
     source: "shopify-sync" as const,
   }));
-  return json({ source: "shopify-sync", products });
+  return cachedJson({ source: "shopify-sync", products });
 }
 
 function demoCatalog(domain: string) {
@@ -83,7 +110,7 @@ function demoCatalog(domain: string) {
     image: null,
     source: "demo" as const,
   }));
-  return json({ source: "demo", products });
+  return cachedJson({ source: "demo", products });
 }
 
 export default async (req: Request, _context: Context) => {
@@ -96,11 +123,11 @@ export default async (req: Request, _context: Context) => {
     return json({ error: "domain query param must be a *.myshopify.com domain" }, 422);
   }
 
-  const token = process.env.SHOPIFY_STOREFRONT_API_TOKEN;
+  const token = tokenForDomain(domain);
   if (!token) return syncedCatalog(domain) ?? demoCatalog(domain);
 
   try {
-    const res = await fetch(`https://${domain}/api/2024-10/graphql.json`, {
+    const res = await fetch(`https://${domain}/api/${SHOPIFY_API_VERSION}/graphql.json`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
@@ -108,7 +135,10 @@ export default async (req: Request, _context: Context) => {
       },
       body: JSON.stringify({ query: PRODUCTS_QUERY }),
     });
-    if (!res.ok) return syncedCatalog(domain) ?? demoCatalog(domain);
+    if (!res.ok) {
+      console.warn(`shopify-catalog: ${domain} returned ${res.status} — falling back to snapshot`);
+      return syncedCatalog(domain) ?? demoCatalog(domain);
+    }
 
     const payload = (await res.json()) as {
       data?: { products?: { edges?: { node: ShopifyProductNode }[] } };
@@ -126,8 +156,9 @@ export default async (req: Request, _context: Context) => {
       url: node.onlineStoreUrl ?? undefined,
       source: "shopify" as const,
     }));
-    return json({ source: "shopify", products });
-  } catch {
+    return cachedJson({ source: "shopify", products });
+  } catch (err) {
+    console.warn(`shopify-catalog: ${domain} fetch failed — falling back to snapshot`, err);
     return syncedCatalog(domain) ?? demoCatalog(domain);
   }
 };

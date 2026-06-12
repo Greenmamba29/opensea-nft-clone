@@ -17,6 +17,8 @@ const ProductsPage = lazy(() => import('./pages/ProductsPage'))
 const QuotesPage = lazy(() => import('./pages/QuotesPage'))
 const OrdersPage = lazy(() => import('./pages/OrdersPage'))
 const DirectionsPage = lazy(() => import('./pages/DirectionsPage'))
+const BnyProgramPage = lazy(() => import('./pages/BnyProgramPage'))
+const BnyStorefrontPage = lazy(() => import('./pages/BnyStorefrontPage'))
 const CollectionPage = lazy(() => import('./pages/CollectionPage'))
 const NFTDetailPage = lazy(() => import('./pages/NFTDetailPage'))
 const RankingsPage = lazy(() => import('./pages/RankingsPage'))
@@ -80,6 +82,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
               <Route path="/mall/studio" element={<StudioPage />} />
               <Route path="/mall/support" element={<SupportPage />} />
               <Route path="/mall/directions" element={<DirectionsPage />} />
+              <Route path="/mall/bny" element={<BnyProgramPage />} />
+              <Route path="/mall/bny/:slug" element={<BnyStorefrontPage />} />
               {/* Legacy paths — keep deep links alive */}
               <Route path="/mall/rankings" element={<Navigate to="/mall/stores" replace />} />
               <Route path="/mall/activity" element={<Navigate to="/mall/orders" replace />} />
