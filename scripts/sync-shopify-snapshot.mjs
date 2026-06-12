@@ -25,7 +25,9 @@ import { dirname, join } from "node:path";
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const SNAPSHOT_PATH = join(ROOT, "netlify", "functions", "_shopify-snapshot.ts");
 
-const DOMAINS = (process.env.SHOPIFY_SYNC_DOMAINS ?? "grahmos-marketbny.myshopify.com")
+// `||` not `??`: CI passes the unset repo variable through as an empty string,
+// which must still fall back to the flagship domain.
+const DOMAINS = (process.env.SHOPIFY_SYNC_DOMAINS || "grahmos-marketbny.myshopify.com")
   .split(",")
   .map((d) => d.trim())
   .filter(Boolean);
